@@ -1,7 +1,5 @@
 import { notFound } from "next/navigation";
 import ProductDetailsContent from "@/components/ProductDetailsContent";
-import db from "@/utils/db";
-import Product from "@/models/Product";
 
 interface ProductPageProps {
   params: Promise<{
@@ -9,18 +7,25 @@ interface ProductPageProps {
   }>;
 }
 
+async function getProduct(slug: string) {
+  const apiUrl = process.env.NEXT_PUBLIC_API_URL?.replace(/\/+$/, "") || "http://localhost:5000/api";
+  try {
+    const res = await fetch(`${apiUrl}/products?slug=${slug}`, { cache: "no-store" });
+    if (!res.ok) return null;
+    return await res.json();
+  } catch (error) {
+    console.error("Error fetching product:", error);
+    return null;
+  }
+}
+
 export default async function ProductDetailsPage({ params }: ProductPageProps) {
   const { slug } = await params;
-
-  await db.connect();
-  const product = await Product.findOne({ slug }).lean();
-  await db.disconnect();
+  const product = await getProduct(slug);
 
   if (!product) {
     notFound();
   }
 
-  const serializedProduct = JSON.parse(JSON.stringify(product));
-
-  return <ProductDetailsContent product={serializedProduct} />;
+  return <ProductDetailsContent product={product} />;
 }

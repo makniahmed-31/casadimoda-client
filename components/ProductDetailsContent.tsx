@@ -24,34 +24,7 @@ interface ProductDetailsContentProps {
   product: Product;
 }
 
-// Map French color names to CSS hex values for swatches
-const COLOR_MAP: Record<string, string> = {
-  Noir: "#111111",
-  Blanc: "#f5f5f5",
-  "Blanc Total": "#f5f5f5",
-  "Blanc / Gris": "#e5e7eb",
-  "Blanc / Bleu": "#dbeafe",
-  Rouge: "#dc2626",
-  "Rouge Bordeaux": "#881337",
-  "Rouge Carmin": "#9f1239",
-  "Noir / Rouge": "#1f2937",
-  Gris: "#9ca3af",
-  "Gris Chiné": "#d1d5db",
-  "Gris / Jaune": "#e5e4c2",
-  Bleu: "#2563eb",
-  "Bleu Nuit": "#1e3a5f",
-  Vert: "#16a34a",
-  "Vert Émeraude": "#059669",
-  Or: "#c9a96e",
-  "Or & Ivoire": "#ddc49a",
-  Marine: "#1e3a5f",
-  Fauve: "#a0522d",
-  Étoupe: "#9e8e7e",
-  Marron: "#78350f",
-  "Marron Cognac": "#92400e",
-  Argent: "#c0c0c0",
-  "Noir / Argent": "#2d2d2d",
-};
+// Colors are fetched dynamically from the DB
 
 export default function ProductDetailsContent({
   product,
@@ -509,7 +482,6 @@ export default function ProductDetailsContent({
                         const hex =
                           colorImg?.hex ||
                           dbColors.find((c) => c.name === color)?.hex ||
-                          COLOR_MAP[color] ||
                           "#888";
                         const isLight =
                           hex === "#ffffff" ||

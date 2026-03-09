@@ -1,32 +1,24 @@
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
-import db from "@/utils/db";
-import ProductModel from "@/models/Product";
+
+async function getNavigationData() {
+  const apiUrl = process.env.NEXT_PUBLIC_API_URL?.replace(/\/+$/, "") || "http://localhost:5000/api";
+  try {
+    const res = await fetch(`${apiUrl}/navigation`, { cache: "no-store" });
+    if (!res.ok) return { categories: [], brands: [], categoryMap: {} };
+    return await res.json();
+  } catch (error) {
+    console.error("Error fetching navigation data:", error);
+    return { categories: [], brands: [], categoryMap: {} };
+  }
+}
 
 export default async function SiteLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
-  await db.connect();
-  const docs = await ProductModel.find({}).lean();
-
-  // Extract unique data
-  const categories = Array.from(new Set(docs.map((p) => p.category)));
-  const brands = Array.from(new Set(docs.map((p) => p.brand)));
-
-  // Group subcategories by category
-  const categoryMap = categories.reduce((acc, cat) => {
-    acc[cat] = Array.from(
-      new Set(
-        docs
-          .filter((p) => p.category === cat)
-          .map((p) => p.subCategory)
-          .filter(Boolean)
-      )
-    ) as string[];
-    return acc;
-  }, {} as Record<string, string[]>);
+  const { categories, brands, categoryMap } = await getNavigationData();
 
   return (
     <>

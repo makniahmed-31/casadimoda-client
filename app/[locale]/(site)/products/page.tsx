@@ -1,9 +1,6 @@
 import ProductItem from "@/components/ProductItem";
 import { Product } from "@/types";
 import Pagination from "@/components/Pagination";
-import db from "@/utils/db";
-import ProductModel from "@/models/Product";
-import { MongoDocument } from "@/utils/db";
 import SortSelect from "@/components/SortSelect";
 import { Link } from "@/i18n/routing";
 import { useTranslations } from "next-intl";
@@ -104,6 +101,18 @@ function ProductsContent({
   );
 }
 
+async function getProductsData(page: number, sort: string) {
+  const apiUrl = process.env.NEXT_PUBLIC_API_URL?.replace(/\/+$/, "") || "http://localhost:5000/api";
+  try {
+    const res = await fetch(`${apiUrl}/products?page=${page}&sort=${sort}&pageSize=16`, { cache: "no-store" });
+    if (!res.ok) return { products: [], totalProducts: 0, totalPages: 0 };
+    return await res.json();
+  } catch (error) {
+    console.error("Error fetching products:", error);
+    return { products: [], totalProducts: 0, totalPages: 0 };
+  }
+}
+
 export default async function ProductsPage({
   searchParams,
 }: {
@@ -113,33 +122,8 @@ export default async function ProductsPage({
   const page = Number(params.page) || 1;
   const sort = params.sort || "newest";
   const pageSize = 16;
-  const skip = (page - 1) * pageSize;
 
-  const order: Record<string, 1 | -1> =
-    sort === "featured"
-      ? { isFeatured: -1 }
-      : sort === "lowest"
-        ? { price: 1 }
-        : sort === "highest"
-          ? { price: -1 }
-          : sort === "toprated"
-            ? { rating: -1 }
-            : sort === "newest"
-              ? { createdAt: -1 }
-              : { _id: -1 };
-
-  await db.connect();
-  const totalProducts = await ProductModel.countDocuments();
-  const docs = await ProductModel.find({})
-    .sort(order)
-    .skip(skip)
-    .limit(pageSize)
-    .lean();
-
-  const products = docs.map(
-    (doc) => db.convertDocToObj(doc as MongoDocument) as unknown as Product,
-  );
-  const totalPages = Math.ceil(totalProducts / pageSize);
+  const { products, totalProducts, totalPages } = await getProductsData(page, sort);
 
   return (
     <ProductsContent

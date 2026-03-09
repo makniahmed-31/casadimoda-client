@@ -1,10 +1,31 @@
 import ProductsTable from "./ProductsTable";
-import { Product, SubCategory, Category, Brand } from "@/types";
-import db, { MongoDocument } from "@/utils/db";
-import ProductModel from "@/models/Product";
-import SubCategoryModel from "@/models/SubCategory";
-import CategoryModel from "@/models/Category";
-import BrandModel from "@/models/Brand";
+import { headers } from "next/headers";
+
+async function getData(searchQuery: string, page: number) {
+  const apiUrl = process.env.NEXT_PUBLIC_API_URL?.replace(/\/+$/, "") || "http://localhost:5000/api";
+  const h = await headers();
+  const cookie = h.get("cookie") || "";
+
+  const [productsRes, subCatsRes, catsRes, brandsRes] = await Promise.all([
+    fetch(`${apiUrl}/admin/products?q=${searchQuery}&page=${page}`, { headers: { cookie }, cache: "no-store" }),
+    fetch(`${apiUrl}/subcategories`, { cache: "no-store" }),
+    fetch(`${apiUrl}/categories`, { cache: "no-store" }),
+    fetch(`${apiUrl}/brands`, { cache: "no-store" }),
+  ]);
+
+  const productsData = productsRes.ok ? await productsRes.json() : { products: [], totalPages: 0 };
+  const subCategories = subCatsRes.ok ? await subCatsRes.json() : [];
+  const categories = catsRes.ok ? await catsRes.json() : [];
+  const brands = brandsRes.ok ? await brandsRes.json() : [];
+
+  return {
+    products: productsData.products || [],
+    totalPages: productsData.totalPages || 0,
+    subCategories,
+    categories,
+    brands
+  };
+}
 
 export default async function AdminProductsPage({
   searchParams,
@@ -14,38 +35,8 @@ export default async function AdminProductsPage({
   const params = await searchParams;
   const page = Number(params.page) || 1;
   const searchQuery = params.q || "";
-  const pageSize = 12;
-  const skip = (page - 1) * pageSize;
 
-  await db.connect();
-
-  // Build search filter
-  const searchFilter = searchQuery
-    ? {
-        $or: [
-          { name: { $regex: searchQuery, $options: "i" } },
-          { brand: { $regex: searchQuery, $options: "i" } },
-          { category: { $regex: searchQuery, $options: "i" } },
-          { subCategory: { $regex: searchQuery, $options: "i" } },
-          { description: { $regex: searchQuery, $options: "i" } },
-        ],
-      }
-    : {};
-
-  const [productsDocs, totalProducts, subCategoriesDocs, categoriesDocs, brandsDocs] = await Promise.all([
-    ProductModel.find(searchFilter).sort({ createdAt: -1 }).skip(skip).limit(pageSize).lean(),
-    ProductModel.countDocuments(searchFilter),
-    SubCategoryModel.find({}).lean(),
-    CategoryModel.find({}).lean(),
-    BrandModel.find({}).lean()
-  ]);
-
-  const products = productsDocs.map(doc => db.convertDocToObj(doc as MongoDocument) as unknown as Product);
-  const subCategories = subCategoriesDocs.map(doc => db.convertDocToObj(doc as MongoDocument) as unknown as SubCategory);
-  const categories = categoriesDocs.map(doc => db.convertDocToObj(doc as MongoDocument) as unknown as Category);
-  const brands = brandsDocs.map(doc => db.convertDocToObj(doc as MongoDocument) as unknown as Brand);
-
-  const totalPages = Math.ceil(totalProducts / pageSize);
+  const { products, totalPages, subCategories, categories, brands } = await getData(searchQuery, page);
 
   return (
     <ProductsTable

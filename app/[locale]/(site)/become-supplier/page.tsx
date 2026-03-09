@@ -15,14 +15,13 @@ import {
   CheckCircle,
   Building,
   Globe,
-  Upload,
 } from "lucide-react";
 import Logo from "@/components/Logo";
 import { useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
-import { CldUploadWidget } from "next-cloudinary";
 import Image from "next/image";
 import { apiFetch } from "@/utils/api";
+import ImageUpload from "@/components/ImageUpload";
 
 type SupplierFormData = {
   // Business Info
@@ -308,32 +307,13 @@ export default function BecomeSupplierPage() {
                           height={64}
                         />
                       )}
-                      <CldUploadWidget
-                        uploadPreset="iqsmn6rq"
-                        onSuccess={(result: unknown) => {
-                          const uploadResult = result as {
-                            info?: { secure_url?: string };
-                          };
-                          if (uploadResult.info?.secure_url) {
-                            setLogoUrl(uploadResult.info.secure_url);
-                            setValue(
-                              "businessLogo",
-                              uploadResult.info.secure_url,
-                            );
-                          }
+                      <ImageUpload
+                        onSuccess={(url) => {
+                          setLogoUrl(url);
+                          setValue("businessLogo", url);
                         }}
-                      >
-                        {({ open }) => (
-                          <button
-                            type="button"
-                            onClick={() => open()}
-                            className="flex items-center gap-2 px-4 py-3 bg-secondary hover:bg-gray-200  text-sm font-bold text-primary transition-colors"
-                          >
-                            <Upload size={18} />
-                            {t("uploadLogo")}
-                          </button>
-                        )}
-                      </CldUploadWidget>
+                        label={t("uploadLogo")}
+                      />
                     </div>
                   </div>
                 </div>
@@ -559,32 +539,13 @@ export default function BecomeSupplierPage() {
                           </span>
                         </div>
                       )}
-                      <CldUploadWidget
-                        uploadPreset="iqsmn6rq"
-                        onSuccess={(result: unknown) => {
-                          const uploadResult = result as {
-                            info?: { secure_url?: string };
-                          };
-                          if (uploadResult.info?.secure_url) {
-                            setLicenseUrl(uploadResult.info.secure_url);
-                            setValue(
-                              "businessLicense",
-                              uploadResult.info.secure_url,
-                            );
-                          }
+                      <ImageUpload
+                        onSuccess={(url) => {
+                          setLicenseUrl(url);
+                          setValue("businessLicense", url);
                         }}
-                      >
-                        {({ open }) => (
-                          <button
-                            type="button"
-                            onClick={() => open()}
-                            className="flex items-center gap-2 px-4 py-3 bg-secondary hover:bg-gray-200  text-sm font-bold text-primary transition-colors"
-                          >
-                            <Upload size={18} />
-                            {t("uploadLicense")}
-                          </button>
-                        )}
-                      </CldUploadWidget>
+                        label={t("uploadLicense")}
+                      />
                     </div>
                   </div>
                 </div>

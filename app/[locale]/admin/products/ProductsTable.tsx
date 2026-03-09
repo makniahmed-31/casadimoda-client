@@ -5,14 +5,11 @@ import Image from "next/image";
 import { Plus, Search, Filter, Edit, Trash2, Package, X } from "lucide-react";
 import { useForm } from "react-hook-form";
 import { useSearchParams, useRouter } from "next/navigation";
-import {
-  CldUploadWidget,
-  CloudinaryUploadWidgetResults,
-} from "next-cloudinary";
 import { useTranslations } from "next-intl";
 import { Product, SubCategory, Category, Brand } from "@/types";
 import Pagination from "@/components/Pagination";
 import { apiFetch } from "@/utils/api";
+import ImageUpload from "@/components/ImageUpload";
 
 export default function ProductsTable({
   initialProducts,
@@ -617,37 +614,16 @@ export default function ProductsTable({
                                   />
                                 </div>
                               ) : null}
-                              <CldUploadWidget
-                                uploadPreset="iqsmn6rq"
-                                onSuccess={(
-                                  result: CloudinaryUploadWidgetResults,
-                                ) => {
-                                  if (result.event !== "success") return;
-                                  const info = result.info;
-                                  if (
-                                    info &&
-                                    typeof info === "object" &&
-                                    "secure_url" in info
-                                  ) {
-                                    setColorImages((prev) => ({
-                                      ...prev,
-                                      [color]: info.secure_url as string,
-                                    }));
-                                  }
+                              <ImageUpload
+                                onSuccess={(url) => {
+                                  setColorImages((prev) => ({
+                                    ...prev,
+                                    [color]: url,
+                                  }));
                                 }}
-                              >
-                                {({ open }) => (
-                                  <button
-                                    type="button"
-                                    onClick={() => open()}
-                                    className="text-[9px] font-black uppercase tracking-widest text-accent border border-accent/30 px-2 py-1 hover:bg-accent/10 transition-all cursor-pointer flex-shrink-0"
-                                  >
-                                    {colorImages[color]
-                                      ? t("changeImage")
-                                      : t("addImage")}
-                                  </button>
-                                )}
-                              </CldUploadWidget>
+                                label={colorImages[color] ? t("changeImage") : t("addImage")}
+                                buttonClassName="text-[9px] font-black uppercase tracking-widest text-accent border border-accent/30 px-2 py-1 hover:bg-accent/10 transition-all cursor-pointer flex-shrink-0"
+                              />
                               <button
                                 type="button"
                                 onClick={() => {

@@ -1,13 +1,25 @@
 import CouponsList from "./CouponsList";
-import { Coupon } from "@/types";
-import db, { MongoDocument } from "@/utils/db";
-import CouponModel from "@/models/Coupon";
+import { headers } from "next/headers";
+
+async function getCoupons() {
+  const apiUrl = process.env.NEXT_PUBLIC_API_URL?.replace(/\/+$/, "") || "http://localhost:5000/api";
+  const h = await headers();
+  const cookie = h.get("cookie") || "";
+
+  try {
+    const res = await fetch(`${apiUrl}/admin/coupons`, {
+      headers: { cookie },
+      cache: "no-store",
+    });
+    if (!res.ok) return [];
+    return await res.json();
+  } catch (error) {
+    console.error("Error fetching coupons:", error);
+    return [];
+  }
+}
 
 export default async function AdminCouponsPage() {
-  await db.connect();
-  const docs = await CouponModel.find({}).lean();
-
-  const coupons = docs.map(doc => db.convertDocToObj(doc as MongoDocument) as unknown as Coupon);
-
+  const coupons = await getCoupons();
   return <CouponsList initialCoupons={coupons} />;
 }

@@ -1,8 +1,5 @@
 import NextAuth from "next-auth";
 import CredentialsProvider from "next-auth/providers/credentials";
-import bcryptjs from "bcryptjs";
-import User from "@/models/User";
-import db from "@/utils/db";
 import { JWT } from "next-auth/jwt";
 import { Session, User as NextAuthUser } from "next-auth";
 
@@ -11,6 +8,7 @@ interface CustomUser extends Omit<NextAuthUser, "role"> {
   isAdmin?: boolean;
   role?: "customer" | "supplier" | "admin" | "transporter";
   supplierId?: string;
+  expressToken?: string;
 }
 
 interface CustomToken extends JWT {
@@ -18,6 +16,7 @@ interface CustomToken extends JWT {
   isAdmin?: boolean;
   role?: "customer" | "supplier" | "admin" | "transporter";
   supplierId?: string;
+  expressToken?: string;
 }
 
 const handler = NextAuth({
@@ -31,6 +30,7 @@ const handler = NextAuth({
         token.isAdmin = (user as CustomUser).isAdmin;
         token.role = (user as CustomUser).role;
         token.supplierId = (user as CustomUser).supplierId;
+        token.expressToken = (user as CustomUser).expressToken;
       }
       return token;
     },
@@ -48,6 +48,7 @@ const handler = NextAuth({
         user.isAdmin = token.isAdmin;
         user.role = token.role;
         user.supplierId = token.supplierId;
+        user.expressToken = token.expressToken;
       }
       return session;
     },
@@ -62,20 +63,25 @@ const handler = NextAuth({
         if (!credentials?.email || !credentials?.password) {
           throw new Error("Email and password required");
         }
-        await db.connect();
-        const user = await User.findOne({
-          email: credentials.email,
+        const apiUrl = process.env.NEXT_PUBLIC_API_URL?.replace(/\/+$/, "") ?? "http://localhost:5000/api";
+        const res = await fetch(`${apiUrl}/auth/login`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ email: credentials.email, password: credentials.password }),
         });
+        const data = await res.json();
 
-        if (user && bcryptjs.compareSync(credentials.password, user.password)) {
+        if (res.ok && data.user) {
+          const u = data.user;
           return {
-            id: user._id.toString(),
-            _id: user._id.toString(),
-            name: user.name,
-            email: user.email,
-            isAdmin: user.isAdmin,
-            role: user.role || "customer",
-            supplierId: user.supplierId?.toString(),
+            id: u._id,
+            _id: u._id,
+            name: u.name,
+            email: u.email,
+            isAdmin: u.isAdmin,
+            role: u.role || "customer",
+            supplierId: u.supplierId,
+            expressToken: data.token,
           };
         }
         return null;

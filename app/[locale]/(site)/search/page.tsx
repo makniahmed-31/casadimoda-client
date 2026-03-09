@@ -3,8 +3,6 @@ import { Product } from "@/types";
 import SearchSidebar from "./SearchSidebar";
 import { Link } from "@/i18n/routing";
 import { X } from "lucide-react";
-import db, { MongoDocument } from "@/utils/db";
-import ProductModel from "@/models/Product";
 import SortSelect from "@/components/SortSelect";
 import { useTranslations } from "next-intl";
 
@@ -28,7 +26,7 @@ function SearchContent({
   brands,
   q,
   category,
-  subCategory,
+  // subCategory is currently unused in the UI but passed in props, I'll keep it for now if needed or remove it
   brand,
   price,
   rating,
@@ -181,6 +179,23 @@ function SearchContent({
   );
 }
 
+async function getSearchData(params: Record<string, string | undefined>) {
+  const apiUrl = process.env.NEXT_PUBLIC_API_URL?.replace(/\/+$/, "") || "http://localhost:5000/api";
+  const searchParams = new URLSearchParams();
+  Object.keys(params).forEach(key => {
+    if (params[key]) searchParams.append(key, params[key]);
+  });
+  
+  try {
+    const res = await fetch(`${apiUrl}/search?${searchParams.toString()}`, { cache: "no-store" });
+    if (!res.ok) return { products: [], countProducts: 0, pages: 0, categories: [], brands: [] };
+    return await res.json();
+  } catch (error) {
+    console.error("Error fetching search data:", error);
+    return { products: [], countProducts: 0, pages: 0, categories: [], brands: [] };
+  }
+}
+
 export default async function SearchPage({ searchParams }: SearchPageProps) {
   const params = await searchParams;
   const {
@@ -194,84 +209,7 @@ export default async function SearchPage({ searchParams }: SearchPageProps) {
     page = "1",
   } = params;
 
-  const pageNumber = Number(page) || 1;
-  const pageSize = 12;
-
-  await db.connect();
-
-  const queryFilter =
-    q && q !== "all"
-      ? {
-          name: {
-            $regex: q,
-            $options: "i",
-          },
-        }
-      : {};
-
-  const categoryFilter = category && category !== "all" ? { category } : {};
-  const subCategoryFilter =
-    subCategory && subCategory !== "all" ? { subCategory } : {};
-  const brandFilter = brand && brand !== "all" ? { brand } : {};
-  const ratingFilter =
-    rating && rating !== "all"
-      ? {
-          rating: {
-            $gte: Number(rating),
-          },
-        }
-      : {};
-
-  const priceFilter =
-    price && price !== "all"
-      ? {
-          price: {
-            $gte: Number(price.split("-")[0]),
-            $lte: Number(price.split("-")[1]),
-          },
-        }
-      : {};
-
-  const order: Record<string, 1 | -1> =
-    sort === "featured"
-      ? { isFeatured: -1 }
-      : sort === "lowest"
-      ? { price: 1 }
-      : sort === "highest"
-      ? { price: -1 }
-      : sort === "toprated"
-      ? { rating: -1 }
-      : sort === "newest"
-      ? { createdAt: -1 }
-      : { _id: -1 };
-
-  const filter = {
-    ...queryFilter,
-    ...categoryFilter,
-    ...subCategoryFilter,
-    ...brandFilter,
-    ...priceFilter,
-    ...ratingFilter,
-  };
-
-  const [productDocs, countProducts, categoriesList, brandsList] =
-    await Promise.all([
-      ProductModel.find(filter)
-        .sort(order)
-        .skip(pageSize * (pageNumber - 1))
-        .limit(pageSize)
-        .lean(),
-      ProductModel.countDocuments(filter),
-      ProductModel.find().distinct("category"),
-      ProductModel.find().distinct("brand"),
-    ]);
-
-  const products = productDocs.map(
-    (doc) => db.convertDocToObj(doc as MongoDocument) as unknown as Product
-  );
-  const pages = Math.ceil(countProducts / pageSize);
-  const categories: string[] = categoriesList;
-  const brands: string[] = brandsList;
+  const { products, countProducts, pages, categories, brands } = await getSearchData(params);
 
   const getFilterUrl = (key: string, value: string) => {
     const newParams = new URLSearchParams();

@@ -1,9 +1,6 @@
 import ProductItem from "@/components/ProductItem";
 import { Product } from "@/types";
 import Pagination from "@/components/Pagination";
-import db from "@/utils/db";
-import ProductModel from "@/models/Product";
-import { MongoDocument } from "@/utils/db";
 import { Link } from "@/i18n/routing";
 import { useTranslations } from "next-intl";
 
@@ -112,6 +109,18 @@ function WholesaleContent({
   );
 }
 
+async function getWholesaleProducts(page: number) {
+  const apiUrl = process.env.NEXT_PUBLIC_API_URL?.replace(/\/+$/, "") || "http://localhost:5000/api";
+  try {
+    const res = await fetch(`${apiUrl}/products?page=${page}&pageSize=12&sort=newest`, { cache: "no-store" });
+    if (!res.ok) return { products: [], totalProducts: 0, totalPages: 0 };
+    return await res.json();
+  } catch (error) {
+    console.error("Error fetching wholesale products:", error);
+    return { products: [], totalProducts: 0, totalPages: 0 };
+  }
+}
+
 export default async function WholesalePage({
   searchParams,
 }: {
@@ -120,20 +129,8 @@ export default async function WholesalePage({
   const params = await searchParams;
   const page = Number(params.page) || 1;
   const pageSize = 12;
-  const skip = (page - 1) * pageSize;
 
-  await db.connect();
-  const totalProducts = await ProductModel.countDocuments();
-  const docs = await ProductModel.find({})
-    .sort({ createdAt: -1 })
-    .skip(skip)
-    .limit(pageSize)
-    .lean();
-
-  const products = docs.map(
-    (doc) => db.convertDocToObj(doc as MongoDocument) as unknown as Product,
-  );
-  const totalPages = Math.ceil(totalProducts / pageSize);
+  const { products, totalProducts, totalPages } = await getWholesaleProducts(page);
 
   return (
     <WholesaleContent

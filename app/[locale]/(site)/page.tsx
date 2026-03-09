@@ -1,22 +1,24 @@
 import { Product } from "@/types";
-import db from "@/utils/db";
-import ProductModel from "@/models/Product";
-import { MongoDocument } from "@/utils/db";
 import { Link } from "@/i18n/routing";
 import HeroCarousel from "@/components/HeroCarousel";
 import FeaturedProductsGrid from "@/components/FeaturedProductsGrid";
 import { useTranslations } from "next-intl";
 
+async function getFeaturedProducts() {
+  const apiUrl = process.env.NEXT_PUBLIC_API_URL?.replace(/\/+$/, "") || "http://localhost:5000/api";
+  try {
+    const res = await fetch(`${apiUrl}/products?isFeatured=true`, { cache: "no-store" });
+    if (!res.ok) return [];
+    const data = await res.json();
+    return data.products || [];
+  } catch (error) {
+    console.error("Error fetching featured products:", error);
+    return [];
+  }
+}
+
 export default async function Home() {
-  await db.connect();
-
-  const featuredDocs = await ProductModel.find({ isFeatured: true })
-    .sort({ createdAt: -1 })
-    .lean();
-
-  const featuredProducts = featuredDocs.map(
-    (doc) => db.convertDocToObj(doc as MongoDocument) as unknown as Product,
-  );
+  const featuredProducts = await getFeaturedProducts();
 
   return <HomeContent featuredProducts={featuredProducts} />;
 }

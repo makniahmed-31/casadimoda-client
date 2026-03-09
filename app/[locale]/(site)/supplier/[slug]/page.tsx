@@ -1,42 +1,36 @@
-import db from "@/utils/db";
-import Supplier from "@/models/Supplier";
-import Product from "@/models/Product";
-import { Product as ProductType, Supplier as SupplierType } from "@/types";
 import { notFound } from "next/navigation";
 import Image from "next/image";
 import { Store, Star, Package, MapPin } from "lucide-react";
 import ProductItem from "@/components/ProductItem";
 import { getTranslations } from "next-intl/server";
+import { Product, Supplier } from "@/types";
 
 interface Props {
   params: Promise<{ slug: string }>;
+}
+
+async function getStorefrontData(slug: string): Promise<{ supplier: Supplier; products: Product[] } | null> {
+  const apiUrl = process.env.NEXT_PUBLIC_API_URL?.replace(/\/+$/, "") || "http://localhost:5000/api";
+  try {
+    const res = await fetch(`${apiUrl}/supplier/storefront/${slug}`, { cache: "no-store" });
+    if (!res.ok) return null;
+    return await res.json();
+  } catch (error) {
+    console.error("Error fetching supplier storefront:", error);
+    return null;
+  }
 }
 
 export default async function SupplierStorefrontPage({ params }: Props) {
   const { slug } = await params;
   const t = await getTranslations("supplierStore");
 
-  await db.connect();
-
-  const supplierDoc = await Supplier.findOne({
-    businessSlug: slug,
-    status: "approved",
-  }).lean();
-
-  if (!supplierDoc) {
+  const data = await getStorefrontData(slug);
+  if (!data) {
     notFound();
   }
 
-  const products = await Product.find({
-    supplier: supplierDoc._id,
-    approvalStatus: "approved",
-  })
-    .sort({ createdAt: -1 })
-    .limit(20)
-    .lean();
-
-  const supplier = db.convertDocToObj(supplierDoc) as unknown as SupplierType;
-  const supplierProducts = products.map((p) => db.convertDocToObj(p) as unknown as ProductType);
+  const { supplier, products } = data;
 
   return (
     <div className="bg-[#2a2a2a] min-h-screen">
@@ -121,7 +115,7 @@ export default async function SupplierStorefrontPage({ params }: Props) {
           </h2>
         </div>
 
-        {supplierProducts.length === 0 ? (
+        {products.length === 0 ? (
           <div className="text-center py-16">
             <Package size={48} className="text-white/10 mx-auto mb-3" />
             <p className="text-white/20 font-bold text-sm">
@@ -130,7 +124,7 @@ export default async function SupplierStorefrontPage({ params }: Props) {
           </div>
         ) : (
           <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-2 sm:gap-4">
-            {supplierProducts.map((product) => (
+            {products.map((product: Product) => (
               <ProductItem key={product._id} product={product} />
             ))}
           </div>
@@ -142,18 +136,15 @@ export default async function SupplierStorefrontPage({ params }: Props) {
 
 export async function generateMetadata({ params }: Props) {
   const { slug } = await params;
+  const data = await getStorefrontData(slug);
 
-  await db.connect();
-  const supplier = await Supplier.findOne({
-    businessSlug: slug,
-    status: "approved",
-  }).lean();
-
-  if (!supplier) {
+  if (!data) {
     return {
       title: "Supplier Not Found",
     };
   }
+
+  const { supplier } = data;
 
   return {
     title: `${supplier.businessName} - Casa di Moda`,

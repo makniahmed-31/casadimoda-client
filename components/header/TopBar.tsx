@@ -30,9 +30,19 @@ export default function TopBar() {
   const sessionUser = session?.user as {
     role?: string;
     isAdmin?: boolean;
+    expressToken?: string;
   } | null;
   const isAdminOrSupplier =
     sessionUser?.isAdmin || sessionUser?.role === "supplier" || sessionUser?.role === "transporter";
+
+  // Sync token to document.cookie so that apiFetch requests include it natively
+  useEffect(() => {
+    if (sessionUser?.expressToken) {
+      document.cookie = `token=${sessionUser.expressToken}; path=/; max-age=604800; samesite=Lax`;
+    } else if (session === null) {
+      document.cookie = `token=; path=/; max-age=0; samesite=Lax`;
+    }
+  }, [sessionUser?.expressToken, session]);
 
   useEffect(() => {
     if (!isAdminOrSupplier) return;

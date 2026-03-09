@@ -19,47 +19,7 @@ let _wishlistCache: Set<string> = new Set();
 let _wishlistFetched = false;
 const _wishlistListeners: Set<() => void> = new Set();
 
-const COLOR_MAP: Record<string, string> = {
-  Noir: "#111111",
-  Blanc: "#f5f5f5",
-  "Blanc Total": "#f5f5f5",
-  "Blanc / Gris": "#e5e7eb",
-  "Blanc / Bleu": "#dbeafe",
-  Rouge: "#dc2626",
-  "Rouge Bordeaux": "#881337",
-  "Rouge Carmin": "#9f1239",
-  Bordeaux: "#881337",
-  "Noir / Rouge": "#1f2937",
-  Gris: "#9ca3af",
-  "Gris Chiné": "#d1d5db",
-  "Gris / Jaune": "#9ca3af",
-  Bleu: "#2563eb",
-  "Bleu Nuit": "#1e3a5f",
-  "Bleu Ciel": "#7dd3fc",
-  Marine: "#1e3a5f",
-  Marron: "#78350f",
-  "Marron Cognac": "#8b4513",
-  Vert: "#16a34a",
-  "Vert Émeraude": "#059669",
-  Or: "#c9a96e",
-  "Or Jaune": "#d4a853",
-  "Or Rose": "#e8b4a0",
-  "Or & Ivoire": "#c9a96e",
-  Argent: "#c0c0c0",
-  "Noir / Argent": "#2d2d2d",
-  Fauve: "#c8860a",
-  Étoupe: "#9e9082",
-  Caramel: "#c68642",
-  Crème: "#fffdd0",
-  Ivoire: "#fffff0",
-  Beige: "#f5f0e8",
-  Rose: "#f9a8d4",
-  Nude: "#e8c9a0",
-  Lavande: "#c4b5fd",
-  Violet: "#7c3aed",
-  Orange: "#f97316",
-  Jaune: "#eab308",
-};
+// Colors are fetched dynamically from the DB
 
 interface ProductItemProps {
   product: Product;
@@ -78,7 +38,6 @@ export default function ProductItem({ product }: ProductItemProps) {
   const [wishlistLoading, setWishlistLoading] = useState(false);
   const [heartPop, setHeartPop] = useState(false);
   const [avgRating, setAvgRating] = useState(product.rating || 0);
-  const [numReviews, setNumReviews] = useState(product.numReviews || 0);
   const [showRating, setShowRating] = useState(false);
   const [hoverRating, setHoverRating] = useState(0);
   const [addedToCart, setAddedToCart] = useState(false);
@@ -132,7 +91,7 @@ export default function ProductItem({ product }: ProductItemProps) {
   useEffect(() => {
     if (_dbColorsFetched) return;
     _dbColorsFetched = true;
-    fetch("/api/colors")
+    apiFetch("/api/colors")
       .then((r) => r.json())
       .then((data) => {
         _dbColorsCache = data;
@@ -184,7 +143,6 @@ export default function ProductItem({ product }: ProductItemProps) {
     if (res.ok) {
       const data = await res.json();
       setAvgRating(data.rating);
-      setNumReviews(data.numReviews);
     }
     setShowRating(false);
   };
@@ -419,7 +377,6 @@ export default function ProductItem({ product }: ProductItemProps) {
               const hex =
                 product.colorImages?.find((ci) => ci.color === color)?.hex ||
                 dbColors.find((c) => c.name === color)?.hex ||
-                COLOR_MAP[color] ||
                 "#888";
               const isActive = activeColor === color;
               return (
