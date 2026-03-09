@@ -1,0 +1,62 @@
+@import "tailwindcss";
+
+@theme {
+  /* Dark Luxe Design Tokens */
+  --color-primary: #1a1a1a;
+  --color-secondary: #f5f0eb;
+  --color-accent: #c9a96e;
+  --color-text-dark: #1a1a1a;
+  --color-dark: #0d0d0d;
+
+  /* Retaining some base colors for utility */
+  --color-marigold: #c09936;
+  --color-oxford-blue: #384457;
+
+  /* Typography */
+  --font-sans: var(--font-geist-sans), ui-sans-serif, system-ui;
+  --font-serif: var(--font-playfair), "Playfair Display", Georgia, "Times New Roman", serif;
+  --font-mono: var(--font-geist-mono), ui-monospace, SFMono-Regular;
+}
+
+:root {
+  --background: #faf8f5;
+  --foreground: #1a1a1a;
+  color-scheme: light;
+}
+
+@layer base {
+  body {
+    background-color: var(--background);
+    color: var(--foreground);
+    font-family: var(--font-sans);
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+  }
+}
+
+@layer utilities {
+  .no-scrollbar::-webkit-scrollbar {
+    display: none;
+  }
+  .no-scrollbar {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
+
+  /* Premium Scrollbar */
+  ::-webkit-scrollbar {
+    width: 6px;
+  }
+  ::-webkit-scrollbar-track {
+    background: transparent;
+  }
+  ::-webkit-scrollbar-thumb {
+    background: #d4d0cc;
+    border-radius: 10px;
+  }
+  ::-webkit-scrollbar-thumb:hover {
+    background: var(--color-accent);
+  }
+
+}

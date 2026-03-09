@@ -1,0 +1,3 @@
+MONGODB_URI=mongodb+srv://makniahmed:makniahmed@cluster0.81jofyt.mongodb.net/casadimoda?appName=Cluster0
+NEXTAUTH_SECRET=casadimoda_secret_key_123
+NEXTAUTH_URL=http://localhost:3000
