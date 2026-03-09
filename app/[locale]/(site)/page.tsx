@@ -3,11 +3,11 @@ import { Link } from "@/i18n/routing";
 import HeroCarousel from "@/components/HeroCarousel";
 import FeaturedProductsGrid from "@/components/FeaturedProductsGrid";
 import { useTranslations } from "next-intl";
+import { API_URL } from "@/utils/api";
 
 async function getFeaturedProducts() {
-  const apiUrl = process.env.NEXT_PUBLIC_API_URL?.replace(/\/+$/, "") || "http://localhost:5000/api";
   try {
-    const res = await fetch(`${apiUrl}/products?isFeatured=true`, { cache: "no-store" });
+    const res = await fetch(`${API_URL}/products?isFeatured=true`, { cache: "no-store" });
     if (!res.ok) return [];
     const data = await res.json();
     return data.products || [];

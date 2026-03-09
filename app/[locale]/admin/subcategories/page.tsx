@@ -1,15 +1,15 @@
 import SubCategoriesList from "./SubCategoriesList";
 import { headers } from "next/headers";
+import { API_URL } from "@/utils/api";
 
 async function getData() {
-  const apiUrl = process.env.NEXT_PUBLIC_API_URL?.replace(/\/+$/, "") || "http://localhost:5000/api";
   const h = await headers();
   const cookie = h.get("cookie") || "";
 
   try {
     const [scRes, catRes] = await Promise.all([
-      fetch(`${apiUrl}/admin/subcategories`, { headers: { cookie }, cache: "no-store" }),
-      fetch(`${apiUrl}/categories`, { cache: "no-store" }),
+      fetch(`${API_URL}/admin/subcategories`, { headers: { cookie }, cache: "no-store" }),
+      fetch(`${API_URL}/categories`, { cache: "no-store" }),
     ]);
 
     const subCategories = scRes.ok ? await scRes.json() : [];

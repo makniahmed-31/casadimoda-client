@@ -179,15 +179,16 @@ function SearchContent({
   );
 }
 
+import { API_URL } from "@/utils/api";
+
 async function getSearchData(params: Record<string, string | undefined>) {
-  const apiUrl = process.env.NEXT_PUBLIC_API_URL?.replace(/\/+$/, "") || "http://localhost:5000/api";
   const searchParams = new URLSearchParams();
   Object.keys(params).forEach(key => {
     if (params[key]) searchParams.append(key, params[key]);
   });
   
   try {
-    const res = await fetch(`${apiUrl}/search?${searchParams.toString()}`, { cache: "no-store" });
+    const res = await fetch(`${API_URL}/search?${searchParams.toString()}`, { cache: "no-store" });
     if (!res.ok) return { products: [], countProducts: 0, pages: 0, categories: [], brands: [] };
     return await res.json();
   } catch (error) {

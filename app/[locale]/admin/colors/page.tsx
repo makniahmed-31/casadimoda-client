@@ -1,13 +1,13 @@
 import ColorsList from "./ColorsList";
 import { headers } from "next/headers";
+import { API_URL } from "@/utils/api";
 
 async function getColors() {
-  const apiUrl = process.env.NEXT_PUBLIC_API_URL?.replace(/\/+$/, "") || "http://localhost:5000/api";
   const h = await headers();
   const cookie = h.get("cookie") || "";
 
   try {
-    const res = await fetch(`${apiUrl}/admin/colors`, {
+    const res = await fetch(`${API_URL}/admin/colors`, {
       headers: { cookie },
       cache: "no-store",
     });

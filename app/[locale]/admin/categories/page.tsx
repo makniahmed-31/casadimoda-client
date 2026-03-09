@@ -1,13 +1,13 @@
 import CategoriesList from "./CategoriesList";
 import { headers } from "next/headers";
+import { API_URL } from "@/utils/api";
 
 async function getCategories() {
-  const apiUrl = process.env.NEXT_PUBLIC_API_URL?.replace(/\/+$/, "") || "http://localhost:5000/api";
   const h = await headers();
   const cookie = h.get("cookie") || "";
 
   try {
-    const res = await fetch(`${apiUrl}/admin/categories`, {
+    const res = await fetch(`${API_URL}/admin/categories`, {
       headers: { cookie },
       cache: "no-store",
     });

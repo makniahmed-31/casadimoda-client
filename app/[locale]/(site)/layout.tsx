@@ -1,10 +1,10 @@
 import Header from "@/components/Header";
 import Footer from "@/components/Footer";
+import { API_URL } from "@/utils/api";
 
 async function getNavigationData() {
-  const apiUrl = process.env.NEXT_PUBLIC_API_URL?.replace(/\/+$/, "") || "http://localhost:5000/api";
   try {
-    const res = await fetch(`${apiUrl}/navigation`, { cache: "no-store" });
+    const res = await fetch(`${API_URL}/navigation`, { cache: "no-store" });
     if (!res.ok) return { categories: [], brands: [], categoryMap: {} };
     return await res.json();
   } catch (error) {

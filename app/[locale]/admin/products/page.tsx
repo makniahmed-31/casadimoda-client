@@ -1,16 +1,16 @@
 import ProductsTable from "./ProductsTable";
 import { headers } from "next/headers";
+import { API_URL } from "@/utils/api";
 
 async function getData(searchQuery: string, page: number) {
-  const apiUrl = process.env.NEXT_PUBLIC_API_URL?.replace(/\/+$/, "") || "http://localhost:5000/api";
   const h = await headers();
   const cookie = h.get("cookie") || "";
 
   const [productsRes, subCatsRes, catsRes, brandsRes] = await Promise.all([
-    fetch(`${apiUrl}/admin/products?q=${searchQuery}&page=${page}`, { headers: { cookie }, cache: "no-store" }),
-    fetch(`${apiUrl}/subcategories`, { cache: "no-store" }),
-    fetch(`${apiUrl}/categories`, { cache: "no-store" }),
-    fetch(`${apiUrl}/brands`, { cache: "no-store" }),
+    fetch(`${API_URL}/admin/products?q=${searchQuery}&page=${page}`, { headers: { cookie }, cache: "no-store" }),
+    fetch(`${API_URL}/subcategories`, { cache: "no-store" }),
+    fetch(`${API_URL}/categories`, { cache: "no-store" }),
+    fetch(`${API_URL}/brands`, { cache: "no-store" }),
   ]);
 
   const productsData = productsRes.ok ? await productsRes.json() : { products: [], totalPages: 0 };

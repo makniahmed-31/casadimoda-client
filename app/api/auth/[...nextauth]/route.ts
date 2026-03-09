@@ -2,6 +2,7 @@ import NextAuth from "next-auth";
 import CredentialsProvider from "next-auth/providers/credentials";
 import { JWT } from "next-auth/jwt";
 import { Session, User as NextAuthUser } from "next-auth";
+import { API_URL } from "@/utils/api";
 
 interface CustomUser extends Omit<NextAuthUser, "role"> {
   _id?: string;
@@ -63,8 +64,7 @@ const handler = NextAuth({
         if (!credentials?.email || !credentials?.password) {
           throw new Error("Email and password required");
         }
-        const apiUrl = process.env.NEXT_PUBLIC_API_URL?.replace(/\/+$/, "") ?? "http://localhost:5000/api";
-        const res = await fetch(`${apiUrl}/auth/login`, {
+        const res = await fetch(`${API_URL}/auth/login`, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ email: credentials.email, password: credentials.password }),

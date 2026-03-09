@@ -7,10 +7,11 @@ interface ProductPageProps {
   }>;
 }
 
+import { API_URL } from "@/utils/api";
+
 async function getProduct(slug: string) {
-  const apiUrl = process.env.NEXT_PUBLIC_API_URL?.replace(/\/+$/, "") || "http://localhost:5000/api";
   try {
-    const res = await fetch(`${apiUrl}/products?slug=${slug}`, { cache: "no-store" });
+    const res = await fetch(`${API_URL}/products?slug=${slug}`, { cache: "no-store" });
     if (!res.ok) return null;
     return await res.json();
   } catch (error) {

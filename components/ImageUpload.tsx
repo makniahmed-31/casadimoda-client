@@ -2,6 +2,7 @@
 
 import { useState, useRef } from "react";
 import { Upload } from "lucide-react";
+import { API_URL } from "@/utils/api";
 
 interface ImageUploadProps {
   onSuccess: (url: string) => void;
@@ -22,10 +23,8 @@ export default function ImageUpload({ onSuccess, label, className, buttonClassNa
     const formData = new FormData();
     formData.append("file", file);
 
-    const apiUrl = process.env.NEXT_PUBLIC_API_URL?.replace(/\/+$/, "") || "http://localhost:5000/api";
-
     try {
-      const res = await fetch(`${apiUrl}/upload`, {
+      const res = await fetch(`${API_URL}/upload`, {
         method: "POST",
         body: formData,
       });

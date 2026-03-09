@@ -101,10 +101,11 @@ function ProductsContent({
   );
 }
 
+import { API_URL } from "@/utils/api";
+
 async function getProductsData(page: number, sort: string) {
-  const apiUrl = process.env.NEXT_PUBLIC_API_URL?.replace(/\/+$/, "") || "http://localhost:5000/api";
   try {
-    const res = await fetch(`${apiUrl}/products?page=${page}&sort=${sort}&pageSize=16`, { cache: "no-store" });
+    const res = await fetch(`${API_URL}/products?page=${page}&sort=${sort}&pageSize=16`, { cache: "no-store" });
     if (!res.ok) return { products: [], totalProducts: 0, totalPages: 0 };
     return await res.json();
   } catch (error) {
