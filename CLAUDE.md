@@ -180,5 +180,3 @@ detail supplier Montre Rolex Submariner — 18 500 TND
 gros supplier Lot Vestes Cuir Agneau 8 pcs — 4 200 TND
 gros supplier Lot Sneakers Running 24 paires — 2 400 TND
 Order — Sophie Martin, 1 detail + 1 gros item, 4 090 TND, paiement à la livraison.
-
-Run again anytime with npm run seed (it deletes and recreates these records safely).
