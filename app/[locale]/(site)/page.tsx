@@ -1,9 +1,11 @@
-import { Product } from "@/types";
-import { Link } from "@/i18n/routing";
-import HeroCarousel from "@/components/HeroCarousel";
+export const dynamic = "force-dynamic";
+
 import FeaturedProductsGrid from "@/components/FeaturedProductsGrid";
-import { useTranslations } from "next-intl";
+import HeroCarousel from "@/components/HeroCarousel";
+import { Link } from "@/i18n/routing";
+import { Product } from "@/types";
 import { API_URL } from "@/utils/api";
+import { useTranslations } from "next-intl";
 
 async function getFeaturedProducts() {
   try {
@@ -96,12 +98,8 @@ function HomeContent({ featuredProducts }: { featuredProducts: Product[] }) {
                 />
               </div>
               <div className="p-4 md:p-5 text-center border-t border-accent/20">
-                <h3 className="font-serif text-lg md:text-xl text-white mb-1 italic">
-                  {t("boutiqueB2C")}
-                </h3>
-                <p className="text-white/40 text-[10px] md:text-xs tracking-wider">
-                  {t("fashionAccessories")}
-                </p>
+                <h3 className="font-serif text-lg md:text-xl text-white mb-1 italic">{t("boutiqueB2C")}</h3>
+                <p className="text-white/40 text-[10px] md:text-xs tracking-wider">{t("fashionAccessories")}</p>
               </div>
             </Link>
 
@@ -117,12 +115,8 @@ function HomeContent({ featuredProducts }: { featuredProducts: Product[] }) {
                 />
               </div>
               <div className="p-4 md:p-5 text-center border-t border-accent/20">
-                <h3 className="font-serif text-lg md:text-xl text-white mb-1 italic">
-                  {t("wholesaleB2B")}
-                </h3>
-                <p className="text-white/40 text-[10px] md:text-xs tracking-wider">
-                  {t("wholesaleSales")}
-                </p>
+                <h3 className="font-serif text-lg md:text-xl text-white mb-1 italic">{t("wholesaleB2B")}</h3>
+                <p className="text-white/40 text-[10px] md:text-xs tracking-wider">{t("wholesaleSales")}</p>
               </div>
             </Link>
 
@@ -138,12 +132,8 @@ function HomeContent({ featuredProducts }: { featuredProducts: Product[] }) {
                 />
               </div>
               <div className="p-4 md:p-5 text-center border-t border-accent/20">
-                <h3 className="font-serif text-lg md:text-xl text-white mb-1 italic">
-                  {t("vipStore")}
-                </h3>
-                <p className="text-white/40 text-[10px] md:text-xs tracking-wider">
-                  {t("customCreation")}
-                </p>
+                <h3 className="font-serif text-lg md:text-xl text-white mb-1 italic">{t("vipStore")}</h3>
+                <p className="text-white/40 text-[10px] md:text-xs tracking-wider">{t("customCreation")}</p>
               </div>
             </Link>
           </div>
@@ -155,10 +145,7 @@ function HomeContent({ featuredProducts }: { featuredProducts: Product[] }) {
         <div className="max-w-7xl mx-auto px-4 md:px-8">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-5 md:gap-8">
             {/* Shop B2C */}
-            <Link
-              href="/products"
-              className="group block relative aspect-[16/9] overflow-hidden"
-            >
+            <Link href="/products" className="group block relative aspect-[16/9] overflow-hidden">
               <img
                 src="https://images.unsplash.com/photo-1441986300917-64674bd600d8?q=80&w=1200"
                 alt={t("shopB2C")}
@@ -166,19 +153,13 @@ function HomeContent({ featuredProducts }: { featuredProducts: Product[] }) {
               />
               <div className="absolute bottom-0 left-0 right-0 bg-black/50 px-4 py-3 md:px-5 md:py-4">
                 <p className="text-white/90 uppercase tracking-wider text-[10px] md:text-xs font-bold">
-                  {t("shopB2C")} —{" "}
-                  <span className="text-white/50 font-normal">
-                    {t("discoverLuxuryBrands")}
-                  </span>
+                  {t("shopB2C")} — <span className="text-white/50 font-normal">{t("discoverLuxuryBrands")}</span>
                 </p>
               </div>
             </Link>
 
             {/* Wholesale B2B */}
-            <Link
-              href="/wholesale"
-              className="group block relative aspect-[16/9] overflow-hidden"
-            >
+            <Link href="/wholesale" className="group block relative aspect-[16/9] overflow-hidden">
               <img
                 src="https://images.unsplash.com/photo-1605518216938-7c31b7b14ad0?q=80&w=1200"
                 alt={t("wholesaleB2BLabel")}
@@ -186,19 +167,13 @@ function HomeContent({ featuredProducts }: { featuredProducts: Product[] }) {
               />
               <div className="absolute bottom-0 left-0 right-0 bg-black/50 px-4 py-3 md:px-5 md:py-4">
                 <p className="text-white/90 uppercase tracking-wider text-[10px] md:text-xs font-bold">
-                  {t("wholesaleB2BLabel")} —{" "}
-                  <span className="text-white/50 font-normal">
-                    {t("premiumFabrics")}
-                  </span>
+                  {t("wholesaleB2BLabel")} — <span className="text-white/50 font-normal">{t("premiumFabrics")}</span>
                 </p>
               </div>
             </Link>
 
             {/* VIP Store */}
-            <Link
-              href="/vip-store"
-              className="group block relative aspect-[16/9] overflow-hidden"
-            >
+            <Link href="/vip-store" className="group block relative aspect-[16/9] overflow-hidden">
               <img
                 src="https://images.unsplash.com/photo-1600585154340-be6161a56a0c?q=80&w=1200"
                 alt={t("vipStoreLabel")}
@@ -206,19 +181,13 @@ function HomeContent({ featuredProducts }: { featuredProducts: Product[] }) {
               />
               <div className="absolute bottom-0 left-0 right-0 bg-black/50 px-4 py-3 md:px-5 md:py-4">
                 <p className="text-white/90 uppercase tracking-wider text-[10px] md:text-xs font-bold">
-                  {t("vipStoreLabel")} —{" "}
-                  <span className="text-white/50 font-normal">
-                    {t("bespokeDesign")}
-                  </span>
+                  {t("vipStoreLabel")} — <span className="text-white/50 font-normal">{t("bespokeDesign")}</span>
                 </p>
               </div>
             </Link>
 
             {/* Become a Partner */}
-            <Link
-              href="/become-supplier"
-              className="group block relative aspect-[16/9] overflow-hidden"
-            >
+            <Link href="/become-supplier" className="group block relative aspect-[16/9] overflow-hidden">
               <img
                 src="https://images.unsplash.com/photo-1454165804606-c3d57bc86b40?q=80&w=1200"
                 alt={t("becomePartner")}
@@ -226,10 +195,7 @@ function HomeContent({ featuredProducts }: { featuredProducts: Product[] }) {
               />
               <div className="absolute bottom-0 left-0 right-0 bg-black/50 px-4 py-3 md:px-5 md:py-4">
                 <p className="text-white/90 uppercase tracking-wider text-[10px] md:text-xs font-bold">
-                  {t("becomePartner")} —{" "}
-                  <span className="text-white/50 font-normal">
-                    {t("joinNetwork")}
-                  </span>
+                  {t("becomePartner")} — <span className="text-white/50 font-normal">{t("joinNetwork")}</span>
                 </p>
               </div>
             </Link>
@@ -277,9 +243,7 @@ function HomeContent({ featuredProducts }: { featuredProducts: Product[] }) {
               <p className="text-accent font-medium uppercase tracking-[0.4em] text-[10px] md:text-xs mb-3">
                 {t("exclusiveSelection")}
               </p>
-              <h2 className="font-serif text-3xl md:text-4xl text-white italic">
-                {t("featuredProducts")}
-              </h2>
+              <h2 className="font-serif text-3xl md:text-4xl text-white italic">{t("featuredProducts")}</h2>
               <div className="w-16 h-[2px] bg-accent mx-auto mt-4" />
             </div>
 
@@ -297,9 +261,7 @@ function HomeContent({ featuredProducts }: { featuredProducts: Product[] }) {
           <h3 className="font-serif text-3xl md:text-4xl lg:text-5xl text-white mb-4 md:mb-6 italic">
             {t("readyForLuxury")}
           </h3>
-          <p className="text-white/50 mb-8 md:mb-10 max-w-xl mx-auto text-sm md:text-base">
-            {t("joinCommunity")}
-          </p>
+          <p className="text-white/50 mb-8 md:mb-10 max-w-xl mx-auto text-sm md:text-base">{t("joinCommunity")}</p>
           <div className="flex flex-col sm:flex-row gap-3 md:gap-4 justify-center">
             <Link
               href="/products"
