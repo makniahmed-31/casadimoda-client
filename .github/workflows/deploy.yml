@@ -19,10 +19,9 @@ jobs:
           script: |
             cd /var/www/casadimoda-client
             git pull origin main
-            # Inject variables securely from GitHub Secrets
-            echo "NEXTAUTH_SECRET=${{ secrets.NEXTAUTH_SECRET }}" >> .env.production
-            echo "NEXTAUTH_URL=${{ secrets.NEXTAUTH_URL }}" >> .env.production
-            echo "NEXT_PUBLIC_API_URL=${{ secrets.NEXT_PUBLIC_API_URL }}" >> .env.production
+            echo "NEXTAUTH_SECRET=${{ secrets.NEXTAUTH_SECRET }}" > .env.production
+            echo "NEXTAUTH_URL=${{ secrets.NEXTAUTH_URL }}" > .env.production
+            echo "NEXT_PUBLIC_API_URL=${{ secrets.NEXT_PUBLIC_API_URL }}" > .env.production
             npm ci
             npm run build
             pm2 restart casadimoda-client --update-env
