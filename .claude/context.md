@@ -59,7 +59,7 @@ After login each role is redirected to its portal (login page: app/[locale]/(sit
 - "Confirm reception" button appears when isDelivered && !isConfirmedByClient
 - Calls PUT /api/user/orders with { confirmReception: true }
 
-## Translation Namespaces Added
+## Translation Namespaces Added .
 
 - `transporter` — added to fr/en/ar (transporter portal labels)
 - `admin.shipping`, `admin.assignTransporter`, `admin.noTransporter`, `admin.assign`, `admin.unassign`, `admin.assignedBadge` — added to fr/en/ar
