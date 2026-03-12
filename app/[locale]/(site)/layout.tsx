@@ -1,6 +1,8 @@
-import Header from "@/components/Header";
 import Footer from "@/components/Footer";
+import Header from "@/components/Header";
 import { API_URL } from "@/utils/api";
+
+export const dynamic = "force-dynamic";
 
 async function getNavigationData() {
   try {
@@ -13,20 +15,12 @@ async function getNavigationData() {
   }
 }
 
-export default async function SiteLayout({
-  children,
-}: {
-  children: React.ReactNode;
-}) {
+export default async function SiteLayout({ children }: { children: React.ReactNode }) {
   const { categories, brands, categoryMap } = await getNavigationData();
 
   return (
     <>
-      <Header
-        categories={categories}
-        brands={brands}
-        categoryMap={categoryMap}
-      />
+      <Header categories={categories} brands={brands} categoryMap={categoryMap} />
       <main className="flex-grow ">{children}</main>
       <Footer />
     </>
