@@ -1,8 +1,7 @@
-import NextAuth from "next-auth";
-import CredentialsProvider from "next-auth/providers/credentials";
+import NextAuth, { User as NextAuthUser, Session } from "next-auth";
 import { JWT } from "next-auth/jwt";
-import { Session, User as NextAuthUser } from "next-auth";
-import { API_URL } from "@/utils/api";
+import CredentialsProvider from "next-auth/providers/credentials";
+const INTERNAL_API_URL = (process.env.INTERNAL_API_URL || "http://localhost:5000/api").replace(/\/+$/, "");
 
 interface CustomUser extends Omit<NextAuthUser, "role"> {
   _id?: string;
@@ -35,13 +34,7 @@ const handler = NextAuth({
       }
       return token;
     },
-    async session({
-      session,
-      token,
-    }: {
-      session: Session;
-      token: CustomToken;
-    }) {
+    async session({ session, token }: { session: Session; token: CustomToken }) {
       if (session.user) {
         // We cast to CustomUser to allow assignment of extra properties
         const user = session.user as CustomUser;
@@ -64,7 +57,7 @@ const handler = NextAuth({
         if (!credentials?.email || !credentials?.password) {
           throw new Error("Email and password required");
         }
-        const res = await fetch(`${API_URL}/auth/login`, {
+        const res = await fetch(`${INTERNAL_API_URL}/auth/login`, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ email: credentials.email, password: credentials.password }),
