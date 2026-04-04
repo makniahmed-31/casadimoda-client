@@ -554,7 +554,7 @@ export default function ProductDetailsContent({ product }: ProductDetailsContent
                   isAdded ? "bg-green-700 text-white" : "bg-primary text-white hover:bg-accent"
                 } disabled:bg-gray-200 disabled:text-gray-400 disabled:cursor-not-allowed`}
               >
-                {isAdded ? t("addedToCart") : isWholesale ? tp("configureOrder") : tp("addToCart")}
+                {isAdded ? t("addedToCart") : tp("addToCart")}
               </button>
             )}
 
