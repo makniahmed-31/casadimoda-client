@@ -18,9 +18,14 @@ jobs:
           username: ${{ secrets.VPS_USER }}
           key: ${{ secrets.VPS_SSH_KEY }}
           script: |
+            export NVM_DIR="$HOME/.nvm"
+            [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"
+            export PATH="$PATH:/usr/local/bin:/usr/bin"
+
             cd /var/www/casadimoda-client
+            git checkout -- package-lock.json
             git pull origin main
-            # Use '>' for the first one to create/overwrite, and '>>' for the rest to append
+
             echo "NEXTAUTH_SECRET=${{ secrets.NEXTAUTH_SECRET }}" > .env.production
             echo "NEXTAUTH_URL=${{ secrets.NEXTAUTH_URL }}" >> .env.production
             echo "NEXT_PUBLIC_API_URL=${{ secrets.NEXT_PUBLIC_API_URL }}" >> .env.production
