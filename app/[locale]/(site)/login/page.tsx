@@ -1,11 +1,10 @@
 "use client";
 
-import React from "react";
 import { Link } from "@/i18n/routing";
-import { useForm } from "react-hook-form";
-import { signIn, getSession } from "next-auth/react";
-import { useRouter } from "next/navigation";
+import { getSession, signIn } from "next-auth/react";
 import { useTranslations } from "next-intl";
+import { useRouter } from "next/navigation";
+import { useForm } from "react-hook-form";
 
 type LoginInput = { email: string; password: string };
 
@@ -32,7 +31,7 @@ export default function LoginPage() {
         const role = (session?.user as { role?: string })?.role;
         const isAdmin = (session?.user as { isAdmin?: boolean })?.isAdmin;
         if (isAdmin || role === "admin") router.push("/admin");
-        else if (role === "supplier") router.push("/fournisseur");
+        else if (role === "supplier") router.push("/supplier");
         else if (role === "transporter") router.push("/transporter");
         else router.push("/");
       }
@@ -61,9 +60,7 @@ export default function LoginPage() {
         <div className="bg-secondary grid grid-cols-1 lg:grid-cols-2 gap-16 w-full max-w-6xl mx-auto items-center">
           {/* LEFT — Cream form card */}
           <div className="p-8 md:p-12 w-full">
-            <h1 className="font-serif text-5xl  text-primary mb-8">
-              {n("login")}
-            </h1>
+            <h1 className="font-serif text-5xl  text-primary mb-8">{n("login")}</h1>
 
             <form onSubmit={handleSubmit(onSubmit)} className="space-y-5">
               <div className="space-y-1.5">
@@ -82,11 +79,7 @@ export default function LoginPage() {
                   placeholder={t("emailPlaceholder")}
                   className={`w-full bg-white border ${errors.email ? "border-red-400" : "border-gray-200 focus:border-accent"} py-3.5 px-4 text-sm text-primary placeholder:text-gray-300 outline-none transition-all`}
                 />
-                {errors.email && (
-                  <p className="text-[10px] font-bold text-red-500 uppercase">
-                    {errors.email.message}
-                  </p>
-                )}
+                {errors.email && <p className="text-[10px] font-bold text-red-500 uppercase">{errors.email.message}</p>}
               </div>
 
               <div className="space-y-1.5">
@@ -103,9 +96,7 @@ export default function LoginPage() {
                   className={`w-full bg-white border ${errors.password ? "border-red-400" : "border-gray-200 focus:border-accent"} py-3.5 px-4 text-sm text-primary placeholder:text-gray-300 outline-none transition-all`}
                 />
                 {errors.password && (
-                  <p className="text-[10px] font-bold text-red-500 uppercase">
-                    {errors.password.message}
-                  </p>
+                  <p className="text-[10px] font-bold text-red-500 uppercase">{errors.password.message}</p>
                 )}
               </div>
 
@@ -190,13 +181,9 @@ export default function LoginPage() {
                 className="w-full h-full object-cover opacity-70"
               />
               <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/90 to-transparent p-5">
-                <p className="text-white/50 text-[9px] uppercase tracking-widest font-bold">
-                  BALENCIAGA
-                </p>
+                <p className="text-white/50 text-[9px] uppercase tracking-widest font-bold">BALENCIAGA</p>
                 <p className="text-white font-bold text-sm">Sac Logo Noir</p>
-                <p className="text-accent font-black text-base mt-0.5">
-                  750 TND
-                </p>
+                <p className="text-accent font-black text-base mt-0.5">750 TND</p>
               </div>
             </div>
             {/* Front phone */}
@@ -210,13 +197,9 @@ export default function LoginPage() {
               />
 
               <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/90 to-transparent p-5">
-                <p className="text-white/50 text-[9px] uppercase tracking-widest font-bold">
-                  Nike
-                </p>
+                <p className="text-white/50 text-[9px] uppercase tracking-widest font-bold">Nike</p>
                 <p className="text-white font-bold text-sm">SHOES</p>
-                <p className="text-accent font-black text-base mt-0.5">
-                  250 TND
-                </p>
+                <p className="text-accent font-black text-base mt-0.5">250 TND</p>
               </div>
             </div>
           </div>

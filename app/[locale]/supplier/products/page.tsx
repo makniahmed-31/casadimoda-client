@@ -1,5 +1,5 @@
-import SupplierProductsTable from "./ProductsTable";
 import { API_URL } from "@/utils/api";
+import SupplierProductsTable from "./ProductsTable";
 
 async function getData() {
   const [subCatsRes, catsRes, brandsRes] = await Promise.all([
@@ -15,18 +15,12 @@ async function getData() {
   return {
     subCategories,
     categories,
-    brands
+    brands,
   };
 }
 
 export default async function SupplierProductsPage() {
   const { subCategories, categories, brands } = await getData();
 
-  return (
-    <SupplierProductsTable
-      categories={categories}
-      subCategories={subCategories}
-      brands={brands}
-    />
-  );
+  return <SupplierProductsTable categories={categories} subCategories={subCategories} brands={brands} />;
 }

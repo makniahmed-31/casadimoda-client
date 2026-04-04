@@ -1,18 +1,10 @@
 "use client";
 
-import { useEffect, useState, useCallback } from "react";
-import {
-  Package,
-  CheckCircle,
-  Clock,
-  Truck,
-  ChevronDown,
-  ChevronUp,
-  RefreshCw,
-} from "lucide-react";
-import Image from "next/image";
-import { useTranslations } from "next-intl";
 import { apiFetch } from "@/utils/api";
+import { CheckCircle, ChevronDown, ChevronUp, Clock, Package, RefreshCw, Truck } from "lucide-react";
+import { useTranslations } from "next-intl";
+import Image from "next/image";
+import { useCallback, useEffect, useState } from "react";
 
 interface OrderItem {
   name: string;
@@ -63,9 +55,7 @@ export default function SupplierOrdersPage() {
   const fetchOrders = useCallback(async () => {
     setLoading(true);
     try {
-      const res = await apiFetch(
-        `/api/supplier/orders?status=${tab}&page=${page}&pageSize=15`,
-      );
+      const res = await apiFetch(`/api/supplier/orders?status=${tab}&page=${page}&pageSize=15`);
       const data = await res.json();
       setOrders(data.orders || []);
       setTotalOrders(data.totalOrders || 0);
@@ -92,10 +82,7 @@ export default function SupplierOrdersPage() {
       <div className="flex items-end justify-between">
         <div>
           <h1 className="text-xl sm:text-2xl lg:text-3xl font-black text-white tracking-tight">
-            {t("title").split(" ")[0]}{" "}
-            <span className="text-accent">
-              {t("title").split(" ").slice(1).join(" ")}
-            </span>
+            {t("title").split(" ")[0]} <span className="text-accent">{t("title").split(" ").slice(1).join(" ")}</span>
           </h1>
           <p className="text-white/30 font-bold uppercase tracking-widest text-[10px] mt-1">
             {activeCount} {activeCount !== 1 ? t("orders") : t("order")}{" "}
@@ -126,9 +113,7 @@ export default function SupplierOrdersPage() {
           >
             {tabItem.label}
             {tabItem.key === "active" && activeCount > 0 && (
-              <span className="ml-2 bg-accent text-primary text-[8px] font-black px-1.5 py-0.5">
-                {activeCount}
-              </span>
+              <span className="ml-2 bg-accent text-primary text-[8px] font-black px-1.5 py-0.5">{activeCount}</span>
             )}
           </button>
         ))}
@@ -142,44 +127,29 @@ export default function SupplierOrdersPage() {
       ) : orders.length === 0 ? (
         <div className="flex flex-col items-center justify-center py-20 text-center">
           <Package size={40} className="text-white/10 mb-4" />
-          <p className="text-white/30 text-sm font-bold uppercase tracking-widest">
-            {t("noOrders")}
-          </p>
+          <p className="text-white/30 text-sm font-bold uppercase tracking-widest">{t("noOrders")}</p>
         </div>
       ) : (
         <div className="space-y-2">
           {orders.map((order) => (
-            <div
-              key={order._id}
-              className="bg-white/5 border border-white/10 hover:border-white/20 transition-colors"
-            >
+            <div key={order._id} className="bg-white/5 border border-white/10 hover:border-white/20 transition-colors">
               {/* Row */}
               <div
                 className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-12 gap-4 px-5 py-4 cursor-pointer items-start lg:items-center"
-                onClick={() =>
-                  setExpandedId(expandedId === order._id ? null : order._id)
-                }
+                onClick={() => setExpandedId(expandedId === order._id ? null : order._id)}
               >
                 <div className="col-span-2">
-                  <p className="text-[9px] font-black uppercase tracking-widest text-white/30 mb-0.5">
-                    {t("order")}
-                  </p>
-                  <p className="text-xs font-bold text-white/70 font-mono">
-                    #{order._id.slice(-8).toUpperCase()}
-                  </p>
+                  <p className="text-[9px] font-black uppercase tracking-widest text-white/30 mb-0.5">{t("order")}</p>
+                  <p className="text-xs font-bold text-white/70 font-mono">#{order._id.slice(-8).toUpperCase()}</p>
                 </div>
                 <div className="col-span-3">
-                  <p className="text-[9px] font-black uppercase tracking-widest text-white/30 mb-0.5">
-                    {t("client")}
-                  </p>
+                  <p className="text-[9px] font-black uppercase tracking-widest text-white/30 mb-0.5">{t("client")}</p>
                   <p className="text-xs font-bold text-white truncate">
                     {order.user?.name || order.shippingAddress.fullName}
                   </p>
                 </div>
                 <div className="col-span-2 hidden md:block">
-                  <p className="text-[9px] font-black uppercase tracking-widest text-white/30 mb-0.5">
-                    {t("date")}
-                  </p>
+                  <p className="text-[9px] font-black uppercase tracking-widest text-white/30 mb-0.5">{t("date")}</p>
                   <p className="text-xs text-white/60">
                     {new Date(order.createdAt).toLocaleDateString("fr-FR", {
                       day: "2-digit",
@@ -189,32 +159,20 @@ export default function SupplierOrdersPage() {
                   </p>
                 </div>
                 <div className="col-span-2">
-                  <p className="text-[9px] font-black uppercase tracking-widest text-white/30 mb-0.5">
-                    {t("total")}
-                  </p>
-                  <p className="text-xs font-black text-accent">
-                    {order.totalPrice.toLocaleString()} TND
-                  </p>
+                  <p className="text-[9px] font-black uppercase tracking-widest text-white/30 mb-0.5">{t("total")}</p>
+                  <p className="text-xs font-black text-accent">{order.totalPrice.toLocaleString()} TND</p>
                 </div>
                 <div className="col-span-2 flex flex-col gap-1">
                   <span
                     className={`flex items-center gap-1 text-[8px] font-black px-2 py-1 w-fit ${order.isPaid ? "bg-green-500/10 text-green-400" : "bg-yellow-500/10 text-yellow-400"}`}
                   >
-                    {order.isPaid ? (
-                      <CheckCircle size={9} />
-                    ) : (
-                      <Clock size={9} />
-                    )}
+                    {order.isPaid ? <CheckCircle size={9} /> : <Clock size={9} />}
                     {order.isPaid ? t("paid") : t("waiting")}
                   </span>
                   <span
                     className={`flex items-center gap-1 text-[8px] font-black px-2 py-1 w-fit ${order.isDelivered ? "bg-green-500/10 text-green-400" : "bg-blue-500/10 text-blue-400"}`}
                   >
-                    {order.isDelivered ? (
-                      <CheckCircle size={9} />
-                    ) : (
-                      <Truck size={9} />
-                    )}
+                    {order.isDelivered ? <CheckCircle size={9} /> : <Truck size={9} />}
                     {order.isDelivered ? t("delivered") : t("inProgress")}
                   </span>
                 </div>
@@ -238,21 +196,12 @@ export default function SupplierOrdersPage() {
                       {order.orderItems.map((item, idx) => (
                         <div key={idx} className="flex items-center gap-3">
                           <div className="relative w-10 h-12 shrink-0 bg-white/5 overflow-hidden">
-                            <Image
-                              src={item.image}
-                              alt={item.name}
-                              fill
-                              className="object-cover"
-                              unoptimized
-                            />
+                            <Image src={item.image} alt={item.name} fill className="object-cover" unoptimized />
                           </div>
                           <div className="flex-1 min-w-0">
-                            <p className="text-xs font-bold text-white truncate">
-                              {item.name}
-                            </p>
+                            <p className="text-xs font-bold text-white truncate">{item.name}</p>
                             <p className="text-[10px] text-white/30">
-                              {t("qty")}: {item.quantity} ×{" "}
-                              {item.price.toLocaleString()} TND
+                              {t("qty")}: {item.quantity} × {item.price.toLocaleString()} TND
                             </p>
                           </div>
                           <p className="text-xs font-black text-accent">
@@ -267,11 +216,8 @@ export default function SupplierOrdersPage() {
                       {t("delivery")}
                     </p>
                     <p className="text-xs text-white/60">
-                      {order.shippingAddress.fullName} —{" "}
-                      {order.shippingAddress.address},{" "}
-                      {order.shippingAddress.city}{" "}
-                      {order.shippingAddress.postalCode},{" "}
-                      {order.shippingAddress.country}
+                      {order.shippingAddress.fullName} — {order.shippingAddress.address}, {order.shippingAddress.city}{" "}
+                      {order.shippingAddress.postalCode}, {order.shippingAddress.country}
                     </p>
                   </div>
                 </div>

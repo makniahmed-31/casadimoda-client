@@ -1,30 +1,25 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
-import { useTranslations } from "next-intl";
-import { Link } from "@/i18n/routing";
-import { usePathname, useRouter } from "@/i18n/routing";
+import { Link, usePathname, useRouter } from "@/i18n/routing";
+import { apiFetch } from "@/utils/api";
 import {
-  LayoutDashboard,
-  Package,
-  ShoppingCart,
+  AlertCircle,
   BarChart3,
-  Store,
-  Settings,
   ChevronRight,
+  LayoutDashboard,
   LogOut,
   Menu,
+  Package,
+  Settings,
+  ShoppingCart,
+  Store,
   X,
-  AlertCircle,
 } from "lucide-react";
 import { signOut, useSession } from "next-auth/react";
-import { apiFetch } from "@/utils/api";
+import { useTranslations } from "next-intl";
+import React, { useEffect, useState } from "react";
 
-export default function SupplierLayout({
-  children,
-}: {
-  children: React.ReactNode;
-}) {
+export default function SupplierLayout({ children }: { children: React.ReactNode }) {
   const t = useTranslations("supplier");
   const pathname = usePathname();
   const router = useRouter();
@@ -63,7 +58,7 @@ export default function SupplierLayout({
   // Redirect if not authenticated or not a supplier
   if (status === "loading") {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-[#FDFCFB]">
+      <div className="min-h-screen flex items-center justify-center bg-primary">
         <div className="w-8 h-8 border-4 border-accent border-t-transparent rounded-full animate-spin" />
       </div>
     );
@@ -76,12 +71,10 @@ export default function SupplierLayout({
 
   if (session?.user?.role !== "supplier") {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-[#FDFCFB]">
+      <div className="min-h-screen flex items-center justify-center bg-primary">
         <div className="text-center max-w-md p-8">
           <AlertCircle size={48} className="text-red-500 mx-auto mb-4" />
-          <h2 className="text-2xl font-black text-primary mb-2">
-            {t("accessDenied")}
-          </h2>
+          <h2 className="text-2xl font-black text-primary mb-2">{t("accessDenied")}</h2>
           <p className="text-text-dark/60 mb-6">{t("needSupplierAccount")}</p>
           <Link
             href="/become-supplier"
@@ -95,18 +88,16 @@ export default function SupplierLayout({
   }
 
   return (
-    <div className="flex flex-col lg:flex-row min-h-screen bg-[#FDFCFB] relative overflow-hidden">
+    <div className="flex flex-col lg:flex-row min-h-screen bg-primary relative overflow-hidden">
       {/* Pending/Rejected Status Banner */}
       {supplierStatus === "pending" && (
         <div className="fixed top-0 left-0 right-0 bg-yellow-500 text-yellow-900 py-2 px-4 text-center text-sm font-bold z-[100]">
-          Your supplier account is pending approval. You can view your dashboard
-          but cannot add products yet.
+          Your supplier account is pending approval. You can view your dashboard but cannot add products yet.
         </div>
       )}
       {supplierStatus === "rejected" && (
         <div className="fixed top-0 left-0 right-0 bg-red-500 text-white py-2 px-4 text-center text-sm font-bold z-[100]">
-          Your supplier application was rejected. Please contact support for
-          more information.
+          Your supplier application was rejected. Please contact support for more information.
         </div>
       )}
       {supplierStatus === "suspended" && (
@@ -121,19 +112,14 @@ export default function SupplierLayout({
           supplierStatus && supplierStatus !== "approved" ? "top-8" : "top-0"
         }`}
       >
-        <button
-          onClick={() => setIsSidebarOpen(true)}
-          className="p-2 hover:bg-white/10  transition-colors order-first"
-        >
+        <button onClick={() => setIsSidebarOpen(true)} className="p-2 hover:bg-white/10  transition-colors order-first">
           <Menu size={24} className="text-accent" />
         </button>
         <Link href="/" className="flex items-center gap-2">
           <div className="w-8 h-8 bg-accent  flex items-center justify-center">
             <span className="text-white font-black italic text-sm">C</span>
           </div>
-          <span className="font-bold tracking-tight uppercase text-sm">
-            Supplier Portal
-          </span>
+          <span className="font-bold tracking-tight uppercase text-sm">Supplier Portal</span>
         </Link>
         <div className="w-10" />
       </header>
@@ -157,9 +143,7 @@ export default function SupplierLayout({
         <div className="p-8 border-b border-white/5 sticky top-0 bg-primary z-10 hidden lg:block">
           <Link href="/" className="group flex items-center gap-3">
             <div className="w-10 h-10 bg-accent  flex items-center justify-center rotate-3 group-hover:rotate-0 transition-transform">
-              <span className="text-white font-black text-xl italic font-playfair">
-                C
-              </span>
+              <span className="text-white font-black text-xl italic font-playfair">C</span>
             </div>
             <span className="text-xl font-black tracking-tighter uppercase font-playfair">
               Supplier<span className="text-accent ml-0.5">.</span>
@@ -173,9 +157,7 @@ export default function SupplierLayout({
             <div className="w-8 h-8 bg-accent  flex items-center justify-center">
               <span className="text-white font-black text-lg italic">C</span>
             </div>
-            <span className="font-bold tracking-tight uppercase">
-              Supplier Portal
-            </span>
+            <span className="font-bold tracking-tight uppercase">Supplier Portal</span>
           </Link>
           <button onClick={() => setIsSidebarOpen(false)}>
             <X size={24} className="text-accent" />
@@ -183,9 +165,7 @@ export default function SupplierLayout({
         </div>
 
         <nav className="flex-grow p-6 space-y-2 mt-4 overflow-y-auto">
-          <p className="text-[10px] font-black uppercase tracking-[0.3em] text-white/30 mb-4 ml-4">
-            Management
-          </p>
+          <p className="text-[10px] font-black uppercase tracking-[0.3em] text-white/30 mb-4 ml-4">Management</p>
           {sidebarLinks.map((link) => {
             const Icon = link.icon;
             const isActive = pathname === link.href;
@@ -202,17 +182,11 @@ export default function SupplierLayout({
               >
                 <div className="flex items-center gap-4">
                   <Icon size={20} strokeWidth={isActive ? 2.5 : 2} />
-                  <span
-                    className={`text-sm tracking-wide ${
-                      isActive ? "font-black" : "font-medium"
-                    }`}
-                  >
+                  <span className={`text-sm tracking-wide ${isActive ? "font-black" : "font-medium"}`}>
                     {link.name}
                   </span>
                 </div>
-                {isActive && (
-                  <ChevronRight size={14} className="animate-pulse" />
-                )}
+                {isActive && <ChevronRight size={14} className="animate-pulse" />}
               </Link>
             );
           })}
@@ -232,9 +206,7 @@ export default function SupplierLayout({
       {/* Main Content */}
       <main
         className={`flex-grow p-2 md:p-6 lg:p-10 overflow-y-auto w-full ${
-          supplierStatus && supplierStatus !== "approved"
-            ? "pt-14 lg:pt-10"
-            : ""
+          supplierStatus && supplierStatus !== "approved" ? "pt-14 lg:pt-10" : ""
         }`}
       >
         {children}

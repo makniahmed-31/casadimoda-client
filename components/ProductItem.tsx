@@ -1,14 +1,14 @@
 "use client";
 
 import { Link } from "@/i18n/routing";
-import Image from "next/image";
-import { useTranslations } from "next-intl";
-import { useStore } from "@/utils/context/Store";
-import { useSession } from "next-auth/react";
 import { Product } from "@/types";
-import { Heart, Star, ShoppingBag } from "lucide-react";
-import { useState, useEffect, useRef } from "react";
 import { apiFetch } from "@/utils/api";
+import { useStore } from "@/utils/context/Store";
+import { Heart, ShoppingBag, Star } from "lucide-react";
+import { useSession } from "next-auth/react";
+import { useTranslations } from "next-intl";
+import Image from "next/image";
+import { useEffect, useRef, useState } from "react";
 
 // Module-level cache so colors are fetched only once per page load
 let _dbColorsCache: { name: string; hex: string }[] = [];
@@ -32,9 +32,7 @@ export default function ProductItem({ product }: ProductItemProps) {
   const { data: session, status } = useSession();
   const userRole = (session?.user as { role?: string })?.role;
   const isCustomer = status === "unauthenticated" || userRole === "customer";
-  const [isWishlisted, setIsWishlisted] = useState(() =>
-    _wishlistCache.has(product._id),
-  );
+  const [isWishlisted, setIsWishlisted] = useState(() => _wishlistCache.has(product._id));
   const [wishlistLoading, setWishlistLoading] = useState(false);
   const [heartPop, setHeartPop] = useState(false);
   const [avgRating, setAvgRating] = useState(product.rating || 0);
@@ -45,21 +43,20 @@ export default function ProductItem({ product }: ProductItemProps) {
 
   const firstColor = product.colors?.[0] ?? null;
   const firstImage = firstColor
-    ? (product.colorImages?.find((ci) => ci.color === firstColor)?.image ??
-      product.image)
+    ? (product.colorImages?.find((ci) => ci.color === firstColor)?.image ?? product.image)
     : product.image;
 
   const [activeImage, setActiveImage] = useState(firstImage);
   const [activeColor, setActiveColor] = useState<string | null>(firstColor);
-  const [dbColors, setDbColors] = useState<{ name: string; hex: string }[]>(
-    _dbColorsCache,
-  );
+  const [dbColors, setDbColors] = useState<{ name: string; hex: string }[]>(_dbColorsCache);
 
   // Sync wishlist state if cache updates after mount
   useEffect(() => {
     const sync = () => setIsWishlisted(_wishlistCache.has(product._id));
     _wishlistListeners.add(sync);
-    return () => { _wishlistListeners.delete(sync); };
+    return () => {
+      _wishlistListeners.delete(sync);
+    };
   }, [product._id]);
 
   // Reset cache on logout
@@ -78,11 +75,7 @@ export default function ProductItem({ product }: ProductItemProps) {
     apiFetch("/api/wishlist")
       .then((r) => r.json())
       .then((data) => {
-        _wishlistCache = new Set(
-          (data.items || []).map(
-            (i: { product: { _id: string } }) => i.product._id,
-          ),
-        );
+        _wishlistCache = new Set((data.items || []).map((i: { product: { _id: string } }) => i.product._id));
         _wishlistListeners.forEach((fn) => fn());
       })
       .catch(() => {});
@@ -231,8 +224,7 @@ export default function ProductItem({ product }: ProductItemProps) {
     setTimeout(() => flyEl.remove(), 800);
   };
 
-  const hasDiscount =
-    product.discountPrice > 0 && product.discountPrice < product.price;
+  const hasDiscount = product.discountPrice > 0 && product.discountPrice < product.price;
 
   const displayPrice = hasDiscount ? product.discountPrice : product.price;
 
@@ -262,11 +254,7 @@ export default function ProductItem({ product }: ProductItemProps) {
             <Star
               className={`w-4 h-4 transition ${avgRating > 0 ? "text-accent fill-accent" : `text-white/25 ${isCustomer ? "group-hover/star:text-accent" : ""}`}`}
             />
-            {avgRating > 0 && (
-              <span className="text-[10px] text-accent/80 font-bold">
-                {avgRating.toFixed(1)}
-              </span>
-            )}
+            {avgRating > 0 && <span className="text-[10px] text-accent/80 font-bold">{avgRating.toFixed(1)}</span>}
           </button>
 
           {/* Rating popup — customers only */}
@@ -290,9 +278,7 @@ export default function ProductItem({ product }: ProductItemProps) {
           )}
         </div>
 
-        <span className="font-serif text-[10px] tracking-[0.25em] text-accent/70 uppercase">
-          {tc("brand")}
-        </span>
+        <span className="font-serif text-[10px] tracking-[0.25em] text-accent/70 uppercase">{tc("brand")}</span>
 
         {isCustomer && (
           <button
@@ -314,10 +300,7 @@ export default function ProductItem({ product }: ProductItemProps) {
       <div className="h-px bg-gradient-to-r from-transparent via-accent/60 to-transparent" />
 
       {/* Image */}
-      <Link
-        href={`/product/${product.slug}`}
-        className="relative aspect-square bg-[#202020] overflow-hidden"
-      >
+      <Link href={`/product/${product.slug}`} className="relative aspect-square bg-[#202020] overflow-hidden">
         {product.isFeatured && (
           <span className="absolute top-3 left-3 z-10 bg-accent px-3 py-1 text-[9px] font-bold uppercase tracking-widest text-white shadow">
             {t("newBadge")}
@@ -329,6 +312,7 @@ export default function ProductItem({ product }: ProductItemProps) {
             src={activeImage || "/images/placeholder.jpg"}
             alt={activeColor ? `${product.name} — ${activeColor}` : product.name}
             fill
+            sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 25vw"
             unoptimized
             className="object-contain p-8 transition-all duration-500 group-hover:scale-110 group-hover:opacity-95"
           />
@@ -339,31 +323,21 @@ export default function ProductItem({ product }: ProductItemProps) {
       <div className="flex flex-col flex-grow px-4 py-4 text-center">
         <Link href={`/product/${product.slug}`} className="flex-grow">
           {/* Title */}
-          <h3 className="text-white font-semibold text-sm tracking-wide line-clamp-2 mb-1">
-            {product.name}
-          </h3>
+          <h3 className="text-white font-semibold text-sm tracking-wide line-clamp-2 mb-1">{product.name}</h3>
 
-          <p className="text-white/30 text-xs uppercase tracking-widest mb-3">
-            {product.brand}
-          </p>
+          <p className="text-white/30 text-xs uppercase tracking-widest mb-3">{product.brand}</p>
 
           {/* Price */}
           <div className="mb-3">
             {hasDiscount ? (
               <div className="flex items-center justify-center gap-2">
-                <span className="text-xl font-bold text-white">
-                  {displayPrice.toLocaleString("en-US")}
-                </span>
+                <span className="text-xl font-bold text-white">{displayPrice.toLocaleString("en-US")}</span>
                 <span className="text-xs text-white/40">{tc("currency")}</span>
-                <span className="text-xs line-through text-white/25">
-                  {product.price.toLocaleString("en-US")}
-                </span>
+                <span className="text-xs line-through text-white/25">{product.price.toLocaleString("en-US")}</span>
               </div>
             ) : (
               <div className="flex items-center justify-center gap-1">
-                <span className="text-xl font-bold text-white">
-                  {displayPrice.toLocaleString("en-US")}
-                </span>
+                <span className="text-xl font-bold text-white">{displayPrice.toLocaleString("en-US")}</span>
                 <span className="text-xs text-white/40">{tc("currency")}</span>
               </div>
             )}
@@ -401,11 +375,7 @@ export default function ProductItem({ product }: ProductItemProps) {
         )}
 
         {/* Active color label */}
-        {activeColor && (
-          <p className="text-[10px] text-accent/70 uppercase tracking-widest mb-2">
-            {activeColor}
-          </p>
-        )}
+        {activeColor && <p className="text-[10px] text-accent/70 uppercase tracking-widest mb-2">{activeColor}</p>}
 
         {/* Sizes */}
         {product.sizes?.length > 0 && (
@@ -422,8 +392,8 @@ export default function ProductItem({ product }: ProductItemProps) {
         )}
 
         {/* CTA */}
-        {isCustomer && (
-          product.parentCategory === "gros" ? (
+        {isCustomer &&
+          (product.parentCategory === "gros" ? (
             <Link
               href={`/product/${product.slug}`}
               className="cursor-pointer w-full py-2 text-xs font-bold uppercase tracking-[0.2em] transition-all duration-300 flex items-center justify-center gap-2 bg-accent text-white hover:bg-accent/90 hover:scale-[1.02]"
@@ -443,8 +413,7 @@ export default function ProductItem({ product }: ProductItemProps) {
               <ShoppingBag className="w-3.5 h-3.5" />
               {t("addToCart")}
             </button>
-          )
-        )}
+          ))}
       </div>
     </div>
   );

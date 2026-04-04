@@ -13,6 +13,7 @@
     "login": "تسجيل الدخول",
     "signedInAs": "مسجّل بـ",
     "adminDashboard": "لوحة الإدارة",
+    "supplierDashboard": "لوحة المورد",
     "myProfile": "ملفي الشخصي",
     "myOrders": "طلباتي",
     "logout": "تسجيل الخروج",
@@ -775,7 +776,13 @@
     "statusRejected": "مرفوض",
     "orderStatusInProgress": "قيد التنفيذ",
     "orderStatusPaid": "مدفوع",
-    "orderStatusWaiting": "في الانتظار"
+    "orderStatusWaiting": "في الانتظار",
+    "totalRevenue": "إجمالي الإيرادات",
+    "totalOrders": "إجمالي الطلبات",
+    "totalProducts": "إجمالي المنتجات",
+    "rating": "التقييم",
+    "netRevenue": "الإيراد الصافي",
+    "commissionRate": "العمولة"
   },
   "supplierOrders": {
     "title": "طلباتي",

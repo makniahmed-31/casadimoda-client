@@ -1,16 +1,16 @@
 "use client";
 
-import { Link } from "@/i18n/routing";
-import { useState, useEffect, useRef } from "react";
-import { useTranslations } from "next-intl";
-import { useStore } from "@/utils/context/Store";
-import { useSession, signOut } from "next-auth/react";
-import { Search, ShoppingCart, Heart, User, Bell } from "lucide-react";
 import LanguageSwitcher from "@/components/LanguageSwitcher";
-import { useRouter } from "next/navigation";
+import { Link } from "@/i18n/routing";
 import { Product } from "@/types";
-import Image from "next/image";
 import { apiFetch } from "@/utils/api";
+import { useStore } from "@/utils/context/Store";
+import { Bell, Heart, Search, ShoppingCart, User } from "lucide-react";
+import { signOut, useSession } from "next-auth/react";
+import { useTranslations } from "next-intl";
+import Image from "next/image";
+import { useRouter } from "next/navigation";
+import { useEffect, useRef, useState } from "react";
 
 export default function TopBar() {
   const t = useTranslations("nav");
@@ -63,10 +63,7 @@ export default function TopBar() {
     return () => clearInterval(interval);
   }, [isAdminOrSupplier, sessionUser?.isAdmin]);
 
-  const cartQuantity = cart.cartItems.reduce(
-    (a: number, c: { quantity: number }) => a + c.quantity,
-    0,
-  );
+  const cartQuantity = cart.cartItems.reduce((a: number, c: { quantity: number }) => a + c.quantity, 0);
 
   useEffect(() => {
     if (cartQuantity === 0) return;
@@ -82,9 +79,7 @@ export default function TopBar() {
     const delayDebounceFn = setTimeout(async () => {
       if (searchQuery.trim().length > 1) {
         try {
-          const res = await apiFetch(
-            `/api/search?q=${encodeURIComponent(searchQuery)}&pageSize=5`,
-          );
+          const res = await apiFetch(`/api/search?q=${encodeURIComponent(searchQuery)}&pageSize=5`);
           const data = await res.json();
           setSearchResults(data.products || []);
           setShowDropdown(true);
@@ -101,17 +96,11 @@ export default function TopBar() {
 
   useEffect(() => {
     function handleClickOutside(event: MouseEvent) {
-      if (
-        dropdownRef.current &&
-        !dropdownRef.current.contains(event.target as Node)
-      ) {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
         setShowDropdown(false);
         setShowSearch(false);
       }
-      if (
-        accountMenuRef.current &&
-        !accountMenuRef.current.contains(event.target as Node)
-      ) {
+      if (accountMenuRef.current && !accountMenuRef.current.contains(event.target as Node)) {
         setShowAccountMenu(false);
       }
     }
@@ -160,10 +149,7 @@ export default function TopBar() {
             </nav>
 
             {/* Center Logo */}
-            <Link
-              href="/"
-              className="hidden md:block absolute left-1/2 -translate-x-1/2"
-            >
+            <Link href="/" className="hidden md:block absolute left-1/2 -translate-x-1/2">
               <h1 className="font-serif text-xl md:text-2xl tracking-[0.01em] lg:tracking-[0.15em] text-accent whitespace-nowrap">
                 CASA DI MODA
               </h1>
@@ -180,11 +166,7 @@ export default function TopBar() {
               </button>
 
               {/* Account */}
-              <div
-                ref={accountMenuRef}
-                className="relative"
-                onClick={() => setShowAccountMenu(!showAccountMenu)}
-              >
+              <div ref={accountMenuRef} className="relative" onClick={() => setShowAccountMenu(!showAccountMenu)}>
                 <button className="flex items-center gap-1.5 text-secondary/70 hover:text-accent transition-colors cursor-pointer">
                   <User className="w-4 h-4 md:w-[18px] md:h-[18px]" />
                   <span className="hidden md:inline text-xs font-medium">
@@ -202,9 +184,7 @@ export default function TopBar() {
                         <p className="text-[10px] font-bold uppercase tracking-widest text-primary/40 mb-1">
                           {t("signedInAs")}
                         </p>
-                        <p className="text-sm font-bold text-primary truncate">
-                          {session.user.name}
-                        </p>
+                        <p className="text-sm font-bold text-primary truncate">{session.user.name}</p>
                       </div>
                       <div className="flex flex-col py-1">
                         {session.user.isAdmin && (
@@ -214,6 +194,15 @@ export default function TopBar() {
                             className="px-4 py-2.5 text-xs font-medium text-primary hover:bg-accent hover:text-secondary transition-colors"
                           >
                             {t("adminDashboard")}
+                          </Link>
+                        )}
+                        {session.user.role === "supplier" && (
+                          <Link
+                            href="/supplier"
+                            onClick={() => setShowAccountMenu(false)}
+                            className="px-4 py-2.5 text-xs font-medium text-primary hover:bg-accent hover:text-secondary transition-colors"
+                          >
+                            {t("supplierDashboard")}
                           </Link>
                         )}
                         <Link
@@ -297,8 +286,8 @@ export default function TopBar() {
                     sessionUser?.isAdmin
                       ? "/admin/orders"
                       : sessionUser?.role === "transporter"
-                      ? "/transporter"
-                      : "/fournisseur/orders"
+                        ? "/transporter"
+                        : "/supplier/orders"
                   }
                   className="flex items-center gap-1.5 text-secondary/70 hover:text-accent transition-colors group"
                 >
@@ -310,9 +299,7 @@ export default function TopBar() {
                       </span>
                     )}
                   </div>
-                  <span className="hidden md:inline text-xs font-medium">
-                    {t("orders")}
-                  </span>
+                  <span className="hidden md:inline text-xs font-medium">{t("orders")}</span>
                 </Link>
               ) : (
                 <Link
@@ -331,9 +318,7 @@ export default function TopBar() {
                       </span>
                     )}
                   </div>
-                  <span className="hidden md:inline text-xs font-medium">
-                    {t("cart")}
-                  </span>
+                  <span className="hidden md:inline text-xs font-medium">{t("cart")}</span>
                 </Link>
               )}
             </div>
@@ -343,10 +328,7 @@ export default function TopBar() {
 
       {/* Expandable Search Bar */}
       {showSearch && (
-        <div
-          ref={dropdownRef}
-          className="bg-white border-b border-gray-100 px-4 md:px-8 py-3 relative z-40"
-        >
+        <div ref={dropdownRef} className="bg-white border-b border-gray-100 px-4 md:px-8 py-3 relative z-40">
           <div className="max-w-2xl mx-auto">
             <div className="flex h-10  overflow-hidden border border-gray-200 focus-within:border-accent">
               <input
@@ -388,23 +370,17 @@ export default function TopBar() {
                               src={product.image}
                               alt={product.name}
                               fill
+                              sizes="48px"
                               className="object-cover"
                               unoptimized={true}
                             />
                           </div>
                           <div className="flex-grow min-w-0">
-                            <h4 className="text-sm font-medium text-primary truncate">
-                              {product.name}
-                            </h4>
-                            <p className="text-[10px] text-primary/40 uppercase tracking-wider">
-                              {product.brand}
-                            </p>
+                            <h4 className="text-sm font-medium text-primary truncate">{product.name}</h4>
+                            <p className="text-[10px] text-primary/40 uppercase tracking-wider">{product.brand}</p>
                           </div>
                           <div className="text-xs font-bold text-accent">
-                            $
-                            {(
-                              product.discountPrice || product.price
-                            ).toLocaleString()}
+                            ${(product.discountPrice || product.price).toLocaleString()}
                           </div>
                         </Link>
                       </li>

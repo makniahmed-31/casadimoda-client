@@ -9,7 +9,7 @@ Next.js 15 App Router · TypeScript · MongoDB/Mongoose · NextAuth.js JWT · Ta
 | Role        | Portal       | Login                                     |
 | ----------- | ------------ | ----------------------------------------- |
 | admin       | /admin       | admin@casadimoda.com / admin123           |
-| supplier    | /fournisseur | supplier@casadimoda.com / supplier123     |
+| supplier    | /supplier    | supplier@casadimoda.com / supplier123     |
 | customer    | /            | client@casadimoda.com / client123         |
 | transporter | /transporter | rapidpost@casadimoda.com / transporter123 |
 | transporter | /transporter | aramex@casadimoda.com / transporter123    |

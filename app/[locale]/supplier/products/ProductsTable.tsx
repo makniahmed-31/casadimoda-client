@@ -1,23 +1,12 @@
 "use client";
 
-import { useEffect, useState } from "react";
-import Image from "next/image";
-import {
-  Plus,
-  Search,
-  Edit,
-  Trash2,
-  Package,
-  X,
-  Clock,
-  CheckCircle,
-  XCircle,
-  AlertCircle,
-} from "lucide-react";
-import { useForm } from "react-hook-form";
-import { Product, SubCategory, Category, Brand } from "@/types";
-import { apiFetch } from "@/utils/api";
 import ImageUpload from "@/components/ImageUpload";
+import { Brand, Category, Product, SubCategory } from "@/types";
+import { apiFetch } from "@/utils/api";
+import { AlertCircle, CheckCircle, Clock, Edit, Package, Plus, Search, Trash2, X, XCircle } from "lucide-react";
+import Image from "next/image";
+import { useEffect, useState } from "react";
+import { useForm } from "react-hook-form";
 
 interface ProductsResponse {
   products: Product[];
@@ -49,15 +38,12 @@ export default function SupplierProductsTable({
   const [sizeInput, setSizeInput] = useState("");
   const [colors, setColors] = useState<string[]>([]);
   const [colorImages, setColorImages] = useState<Record<string, string>>({});
-  const [dbColors, setDbColors] = useState<
-    { _id: string; name: string; hex: string }[]
-  >([]);
+  const [dbColors, setDbColors] = useState<{ _id: string; name: string; hex: string }[]>([]);
   const [selectedDbColor, setSelectedDbColor] = useState("");
 
   const { register, handleSubmit, reset, setValue, watch } = useForm<Product>();
   const selectedCategory = watch("category");
 
-  // Fetch supplier status
   useEffect(() => {
     const fetchStatus = async () => {
       try {
@@ -73,7 +59,6 @@ export default function SupplierProductsTable({
     fetchStatus();
   }, []);
 
-  // Fetch products
   const fetchProducts = async (page = 1, search = "", status = "all") => {
     setLoading(true);
     try {
@@ -107,12 +92,10 @@ export default function SupplierProductsTable({
       .catch(() => {});
   }, []);
 
-  // Handle search with debounce
   useEffect(() => {
     const timeoutId = setTimeout(() => {
       fetchProducts(1, searchQuery, statusFilter);
     }, 500);
-
     return () => clearTimeout(timeoutId);
   }, [searchQuery]);
 
@@ -129,7 +112,6 @@ export default function SupplierProductsTable({
       alert("Your account must be approved before you can add products.");
       return;
     }
-
     if (product) {
       setEditingProduct(product);
       Object.keys(product).forEach((key) => {
@@ -192,38 +174,16 @@ export default function SupplierProductsTable({
         image: colorImages[color],
         hex: dbColors.find((c) => c.name === color)?.hex || "",
       }));
-
-    // First color image is the primary product image
-    const primaryImage =
-      colors.length > 0 && colorImages[colors[0]]
-        ? colorImages[colors[0]]
-        : data.image || "";
-
+    const primaryImage = colors.length > 0 && colorImages[colors[0]] ? colorImages[colors[0]] : data.image || "";
     const body = editingProduct
-      ? {
-          ...data,
-          _id: editingProduct._id,
-          image: primaryImage,
-          sizes,
-          colors,
-          colorImages: colorImagesArray,
-        }
-      : {
-          ...data,
-          image: primaryImage,
-          sizes,
-          colors,
-          colorImages: colorImagesArray,
-        };
-
-    // Auto-generate slug if empty
+      ? { ...data, _id: editingProduct._id, image: primaryImage, sizes, colors, colorImages: colorImagesArray }
+      : { ...data, image: primaryImage, sizes, colors, colorImages: colorImagesArray };
     if (!data.slug) {
       body.slug = data.name
         .toLowerCase()
         .replace(/ /g, "-")
         .replace(/[^\w-]+/g, "");
     }
-
     setSaving(true);
     try {
       const res = await apiFetch(url, {
@@ -231,7 +191,6 @@ export default function SupplierProductsTable({
         body: JSON.stringify(body),
         headers: { "Content-Type": "application/json" },
       });
-
       if (res.ok) {
         setShowModal(false);
         fetchProducts(currentPage, searchQuery, statusFilter);
@@ -250,9 +209,7 @@ export default function SupplierProductsTable({
   const deleteProduct = async (id: string) => {
     if (!confirm("Are you sure you want to delete this product?")) return;
     try {
-      const res = await apiFetch(`/api/supplier/products?id=${id}`, {
-        method: "DELETE",
-      });
+      const res = await apiFetch(`/api/supplier/products?id=${id}`, { method: "DELETE" });
       if (res.ok) {
         fetchProducts(currentPage, searchQuery, statusFilter);
       } else {
@@ -268,23 +225,20 @@ export default function SupplierProductsTable({
     switch (status) {
       case "approved":
         return (
-          <span className="inline-flex items-center gap-1 text-[10px] font-black text-green-700 bg-green-100 px-2 py-1  uppercase tracking-widest">
-            <CheckCircle size={12} />
-            Approved
+          <span className="inline-flex items-center gap-1 text-[9px] font-black text-green-400 bg-green-500/10 border border-green-500/20 px-2 py-1 uppercase tracking-widest">
+            <CheckCircle size={10} /> Approved
           </span>
         );
       case "pending":
         return (
-          <span className="inline-flex items-center gap-1 text-[10px] font-black text-yellow-700 bg-yellow-100 px-2 py-1  uppercase tracking-widest">
-            <Clock size={12} />
-            Pending
+          <span className="inline-flex items-center gap-1 text-[9px] font-black text-yellow-400 bg-yellow-500/10 border border-yellow-500/20 px-2 py-1 uppercase tracking-widest">
+            <Clock size={10} /> Pending
           </span>
         );
       case "rejected":
         return (
-          <span className="inline-flex items-center gap-1 text-[10px] font-black text-red-700 bg-red-100 px-2 py-1  uppercase tracking-widest">
-            <XCircle size={12} />
-            Rejected
+          <span className="inline-flex items-center gap-1 text-[9px] font-black text-red-400 bg-red-500/10 border border-red-500/20 px-2 py-1 uppercase tracking-widest">
+            <XCircle size={10} /> Rejected
           </span>
         );
       default:
@@ -295,52 +249,48 @@ export default function SupplierProductsTable({
   const isApproved = supplierStatus === "approved";
 
   return (
-    <div className="space-y-10">
-      <div className="flex flex-col md:flex-row justify-between items-start md:items-end gap-6">
+    <div className="space-y-4 md:space-y-8">
+      {/* Header */}
+      <div className="flex justify-between items-end">
         <div>
-          <h1 className="text-3xl md:text-4xl font-black text-secondary tracking-tighter lowercase">
-            My Products<span className="text-accent text-5xl">.</span>
+          <h1 className="text-xl sm:text-2xl lg:text-3xl font-black text-white tracking-tight">
+            My <span className="text-accent">Products</span>
           </h1>
-          <p className="text-text-dark/40 font-bold uppercase tracking-widest text-[10px] mt-2">
+          <p className="text-white/30 font-bold uppercase tracking-widest text-[10px] mt-1">
             Manage your product listings
           </p>
         </div>
         <button
           onClick={() => openModal()}
           disabled={!isApproved}
-          className={`px-8 py-4  font-black uppercase text-[10px] tracking-widest shadow-xl flex items-center gap-2 transition-all active:scale-95 ${
+          className={`inline-flex items-center gap-2 px-5 py-2.5 font-black text-xs uppercase tracking-widest transition-all ${
             isApproved
-              ? "bg-primary hover:bg-black text-white cursor-pointer"
-              : "bg-gray-200 text-gray-400 cursor-not-allowed"
+              ? "bg-accent hover:bg-accent/80 text-primary cursor-pointer"
+              : "bg-white/10 text-white/20 cursor-not-allowed"
           }`}
         >
-          <Plus size={16} /> Add New Product
+          <Plus size={14} /> Add Product
         </button>
       </div>
 
       {/* Account Status Warning */}
       {!isApproved && (
-        <div className="bg-yellow-50 border border-yellow-200  p-4">
-          <div className="flex items-center gap-3">
-            <AlertCircle size={20} className="text-yellow-600" />
-            <p className="text-sm text-yellow-800">
-              Your account is pending approval. You can view existing products
-              but cannot add new ones until approved.
-            </p>
-          </div>
+        <div className="bg-yellow-500/10 border border-yellow-500/20 p-4 flex items-center gap-3">
+          <AlertCircle size={16} className="text-yellow-400 shrink-0" />
+          <p className="text-sm text-yellow-400 font-bold">
+            Your account is pending approval. You can view existing products but cannot add new ones until approved.
+          </p>
         </div>
       )}
 
-      <div className="bg-white border border-gray-100 shadow-sm overflow-hidden p-4 sm:p-6 lg:p-8">
+      {/* Table Card */}
+      <div className="bg-white/5 border border-white/10 overflow-hidden">
         {/* Filters */}
-        <div className="flex flex-col md:flex-row gap-4 mb-8">
+        <div className="flex flex-col md:flex-row gap-4 p-5 border-b border-white/10">
           <div className="relative flex-grow">
-            <Search
-              className="absolute left-4 top-1/2 -translate-y-1/2 text-text-dark/20"
-              size={18}
-            />
+            <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-white/20" size={15} />
             <input
-              className="w-full bg-secondary border-none  py-4 pl-12 pr-4 outline-none font-bold text-primary placeholder:text-gray-300"
+              className="w-full bg-white/5 border border-white/10 focus:border-accent py-2.5 pl-10 pr-4 text-sm text-white placeholder:text-white/20 outline-none transition-all"
               placeholder="Search products..."
               value={searchQuery}
               onChange={handleSearchChange}
@@ -349,145 +299,127 @@ export default function SupplierProductsTable({
           <select
             value={statusFilter}
             onChange={(e) => setStatusFilter(e.target.value)}
-            className="bg-secondary border-none  px-6 py-4 outline-none font-bold text-primary appearance-none cursor-pointer"
+            className="bg-white/5 border border-white/10 focus:border-accent px-4 py-2.5 text-sm text-white outline-none font-bold appearance-none cursor-pointer transition-all"
           >
-            <option value="all">All Status</option>
-            <option value="approved">Approved</option>
-            <option value="pending">Pending</option>
-            <option value="rejected">Rejected</option>
+            <option value="all" className="bg-primary">
+              All Status
+            </option>
+            <option value="approved" className="bg-primary">
+              Approved
+            </option>
+            <option value="pending" className="bg-primary">
+              Pending
+            </option>
+            <option value="rejected" className="bg-primary">
+              Rejected
+            </option>
           </select>
         </div>
 
-        {/* Loading State */}
         {loading ? (
           <div className="flex items-center justify-center py-20">
-            <div className="w-8 h-8 border-4 border-accent border-t-transparent rounded-full animate-spin" />
+            <div className="w-8 h-8 border-2 border-accent border-t-transparent rounded-full animate-spin" />
           </div>
         ) : (
           <>
-            {/* Products Table */}
             <div className="overflow-x-auto">
-              <table className="w-full text-left min-w-[800px]">
+              <table className="w-full min-w-[700px]">
                 <thead>
-                  <tr className="border-b border-gray-50">
-                    <th className="pb-6 text-[11px] font-black uppercase tracking-widest text-primary">
-                      Product Details
+                  <tr className="border-b border-white/10">
+                    <th className="px-5 py-3 text-left text-[9px] font-black uppercase tracking-widest text-white/30">
+                      Product
                     </th>
-                    <th className="pb-6 text-[11px] font-black uppercase tracking-widest text-primary">
+                    <th className="px-5 py-3 text-left text-[9px] font-black uppercase tracking-widest text-white/30">
                       Category
                     </th>
-                    <th className="pb-6 text-[11px] font-black uppercase tracking-widest text-primary">
+                    <th className="px-5 py-3 text-left text-[9px] font-black uppercase tracking-widest text-white/30">
                       Status
                     </th>
-                    <th className="pb-6 text-[11px] font-black uppercase tracking-widest text-primary">
-                      Inventory
+                    <th className="px-5 py-3 text-left text-[9px] font-black uppercase tracking-widest text-white/30">
+                      Stock
                     </th>
-                    <th className="pb-6 text-[11px] font-black uppercase tracking-widest text-primary">
+                    <th className="px-5 py-3 text-right text-[9px] font-black uppercase tracking-widest text-white/30">
                       Price
                     </th>
-                    <th className="pb-6 text-[11px] font-black uppercase tracking-widest text-primary text-right">
-                      Actions
-                    </th>
+                    <th className="px-5 py-3 text-right text-[9px] font-black uppercase tracking-widest text-white/30"></th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-gray-50">
+                <tbody className="divide-y divide-white/5">
                   {products.map((product) => (
-                    <tr
-                      key={product._id}
-                      className="group hover:bg-secondary/10 transition-colors"
-                    >
-                      <td className="py-6">
-                        <div className="flex items-center gap-4">
-                          <div className="relative w-16 h-20  overflow-hidden bg-secondary flex-shrink-0">
+                    <tr key={product._id} className="group hover:bg-white/5 transition-colors">
+                      <td className="px-5 py-4">
+                        <div className="flex items-center gap-3">
+                          <div className="relative w-10 h-12 bg-white/10 shrink-0 overflow-hidden">
                             <Image
                               src={product.image || "/images/placeholder.jpg"}
                               alt={product.name}
                               fill
                               className="object-cover"
-                              unoptimized={true}
+                              unoptimized
                             />
                           </div>
-                          <div>
-                            <p className="font-black text-primary text-sm leading-tight mb-1">
-                              {product.name}
-                            </p>
-                            <p className="text-[10px] font-bold text-text-dark/30 uppercase tracking-widest">
-                              {product.brand}
-                            </p>
+                          <div className="min-w-0">
+                            <p className="text-xs font-bold text-white truncate max-w-[160px]">{product.name}</p>
+                            <p className="text-[10px] text-white/30">{product.brand}</p>
                           </div>
                         </div>
                       </td>
-                      <td className="py-6">
-                        <span className="text-[10px] font-black text-accent bg-accent/5 px-3 py-1  uppercase tracking-widest">
+                      <td className="px-5 py-4">
+                        <span className="text-[9px] font-black text-accent bg-accent/10 px-2 py-1 uppercase tracking-widest">
                           {product.category}
                         </span>
                       </td>
-                      <td className="py-6">
+                      <td className="px-5 py-4">
                         {getStatusBadge(product.approvalStatus)}
                         {product.approvalNote && (
-                          <p className="text-[10px] text-red-500 mt-1">
-                            {product.approvalNote}
-                          </p>
+                          <p className="text-[10px] text-red-400 mt-1">{product.approvalNote}</p>
                         )}
                       </td>
-                      <td className="py-6">
+                      <td className="px-5 py-4">
                         <div className="flex items-center gap-2">
                           <div
-                            className={`w-2 h-2 rounded-full ${
-                              product.countInStock > 0
-                                ? "bg-green-500"
-                                : "bg-red-500"
-                            }`}
+                            className={`w-1.5 h-1.5 rounded-full ${product.countInStock > 0 ? "bg-green-400" : "bg-red-400"}`}
                           />
-                          <span className="text-xs font-black text-primary">
-                            {product.countInStock} Units
-                          </span>
+                          <span className="text-xs font-bold text-white/60">{product.countInStock}</span>
                         </div>
                       </td>
-                      <td className="py-6">
-                        <div className="flex flex-col">
+                      <td className="px-5 py-4 text-right">
+                        <div className="flex flex-col items-end">
                           <span
-                            className={`text-lg font-black ${
-                              product.discountPrice > 0
-                                ? "text-red-500"
-                                : "text-primary"
-                            }`}
+                            className={`text-sm font-black ${product.discountPrice > 0 ? "text-red-400" : "text-accent"}`}
                           >
-                            $
-                            {(
-                              product.discountPrice || product.price
-                            ).toLocaleString("en-US")}
+                            {(product.discountPrice || product.price).toLocaleString()} TND
                           </span>
                           {product.discountPrice > 0 && (
-                            <span className="text-[10px] font-bold text-text-dark/30 line-through">
-                              ${product.price.toLocaleString("en-US")}
+                            <span className="text-[10px] text-white/30 line-through">
+                              {product.price.toLocaleString()} TND
                             </span>
                           )}
                         </div>
                       </td>
-                      <td className="py-6 text-right">
+                      <td className="px-5 py-4 text-right">
                         <div className="flex justify-end gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
                           <button
                             onClick={() => openModal(product)}
                             disabled={!isApproved}
-                            className={`p-3  shadow-sm transition-all ${
+                            className={`p-2 border transition-all ${
                               isApproved
-                                ? "bg-secondary text-primary hover:bg-white hover:text-accent cursor-pointer"
-                                : "bg-gray-100 text-gray-300 cursor-not-allowed"
+                                ? "border-white/20 text-white/50 hover:border-accent hover:text-accent cursor-pointer"
+                                : "border-white/5 text-white/10 cursor-not-allowed"
                             }`}
                           >
-                            <Edit size={16} />
+                            <Edit size={14} />
                           </button>
                           <button
                             onClick={() => deleteProduct(product._id)}
                             disabled={!isApproved}
-                            className={`p-3  shadow-sm transition-all ${
+                            className={`p-2 border transition-all ${
                               isApproved
-                                ? "bg-secondary text-primary hover:bg-red-50 hover:text-red-500 cursor-pointer"
-                                : "bg-gray-100 text-gray-300 cursor-not-allowed"
+                                ? "border-white/20 text-white/50 hover:border-red-500 hover:text-red-400 cursor-pointer"
+                                : "border-white/5 text-white/10 cursor-not-allowed"
                             }`}
                           >
-                            <Trash2 size={16} />
+                            <Trash2 size={14} />
                           </button>
                         </div>
                       </td>
@@ -495,21 +427,19 @@ export default function SupplierProductsTable({
                   ))}
                   {products.length === 0 && (
                     <tr>
-                      <td colSpan={6} className="py-20 text-center">
-                        <div className="flex flex-col items-center gap-4">
-                          <Package size={48} className="text-gray-100" />
-                          <p className="text-xs font-bold text-text-dark/30 uppercase tracking-[0.2em]">
-                            No products found
-                          </p>
-                          {isApproved && (
-                            <button
-                              onClick={() => openModal()}
-                              className="text-accent font-bold text-sm hover:underline"
-                            >
-                              Add your first product
-                            </button>
-                          )}
-                        </div>
+                      <td colSpan={6} className="px-5 py-16 text-center">
+                        <Package size={32} className="text-white/10 mx-auto mb-3" />
+                        <p className="text-[10px] font-black uppercase tracking-widest text-white/20">
+                          No products found
+                        </p>
+                        {isApproved && (
+                          <button
+                            onClick={() => openModal()}
+                            className="mt-3 text-accent font-bold text-xs hover:underline"
+                          >
+                            Add your first product
+                          </button>
+                        )}
                       </td>
                     </tr>
                   )}
@@ -517,26 +447,21 @@ export default function SupplierProductsTable({
               </table>
             </div>
 
-            {/* Pagination */}
             {totalPages > 1 && (
-              <div className="mt-8 flex justify-center">
-                <div className="flex gap-2">
-                  {Array.from({ length: totalPages }, (_, i) => i + 1).map(
-                    (page) => (
-                      <button
-                        key={page}
-                        onClick={() => handlePageChange(page)}
-                        className={`px-4 py-2  font-bold text-sm transition-all ${
-                          currentPage === page
-                            ? "bg-accent text-white"
-                            : "bg-secondary text-primary hover:bg-gray-200"
-                        }`}
-                      >
-                        {page}
-                      </button>
-                    ),
-                  )}
-                </div>
+              <div className="px-5 py-4 border-t border-white/10 flex justify-center gap-2">
+                {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => (
+                  <button
+                    key={page}
+                    onClick={() => handlePageChange(page)}
+                    className={`px-3 py-1.5 text-xs font-black transition-all ${
+                      currentPage === page
+                        ? "bg-accent text-primary"
+                        : "bg-white/5 border border-white/10 text-white/50 hover:border-accent hover:text-accent"
+                    }`}
+                  >
+                    {page}
+                  </button>
+                ))}
               </div>
             )}
           </>
@@ -545,81 +470,76 @@ export default function SupplierProductsTable({
 
       {/* Product Modal */}
       {showModal && (
-        <div className="fixed inset-0 bg-primary/40 backdrop-blur-sm z-[100] flex items-center justify-center p-4">
-          <div className="bg-white w-full max-w-4xl  shadow-2xl animate-in zoom-in duration-300 max-h-[90vh] flex flex-col overflow-hidden">
-            <div className="p-10 pb-4 flex justify-between items-center bg-white z-10">
-              <h2 className="text-3xl font-black text-primary tracking-tight">
+        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-[100] flex items-center justify-center p-4">
+          <div className="bg-primary border border-white/10 w-full max-w-4xl shadow-2xl max-h-[90vh] flex flex-col overflow-hidden">
+            <div className="px-8 py-6 border-b border-white/10 flex justify-between items-center">
+              <h2 className="text-xl font-black text-white tracking-tight">
                 {editingProduct ? "Edit Product" : "Add New Product"}
               </h2>
               <button
                 onClick={() => setShowModal(false)}
-                className="p-2 hover:bg-secondary rounded-full transition-all cursor-pointer"
+                className="p-2 text-white/40 hover:text-white hover:bg-white/10 transition-all cursor-pointer"
               >
-                <X size={24} />
+                <X size={20} />
               </button>
             </div>
 
-            {/* Info Banner */}
-            <div className="mx-10 mb-4 p-4 bg-blue-50 border border-blue-200 ">
-              <p className="text-sm text-blue-800">
-                <strong>Note:</strong> New products and significant edits
-                require admin approval before they appear on the store.
+            <div className="mx-8 mt-4 p-4 bg-blue-500/10 border border-blue-500/20">
+              <p className="text-sm text-blue-400 font-bold">
+                New products and significant edits require admin approval before they appear on the store.
               </p>
             </div>
 
-            <form
-              onSubmit={handleSubmit(onSubmit)}
-              className="flex flex-col flex-grow overflow-hidden"
-            >
-              <div className="flex-grow overflow-y-auto p-10 pt-4 space-y-4 md:space-y-8">
+            <form onSubmit={handleSubmit(onSubmit)} className="flex flex-col flex-grow overflow-hidden">
+              <div className="flex-grow overflow-y-auto p-8 pt-6 space-y-6">
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-                  {/* Left Side: General Info */}
-                  <div className="space-y-6">
+                  {/* Left */}
+                  <div className="space-y-5">
                     <div className="space-y-2">
-                      <label className="text-[11px] font-black uppercase tracking-widest text-primary ml-2">
+                      <label className="text-[9px] font-black uppercase tracking-widest text-white/30">
                         Product Name *
                       </label>
                       <input
                         {...register("name", { required: true })}
-                        className="w-full bg-secondary border-none  p-4 outline-none font-bold text-primary"
+                        className="w-full bg-white/5 border border-white/10 focus:border-accent p-3 text-sm text-white placeholder:text-white/20 outline-none transition-all"
                         placeholder="e.g. Silk Evening Gown"
                       />
                     </div>
 
                     <div className="grid grid-cols-2 gap-4">
                       <div className="space-y-2">
-                        <label className="text-[11px] font-black uppercase tracking-widest text-primary ml-2">
+                        <label className="text-[9px] font-black uppercase tracking-widest text-white/30">
                           Category *
                         </label>
                         <select
                           {...register("category", { required: true })}
-                          className="w-full bg-secondary border-none  p-4 outline-none font-bold text-primary appearance-none"
+                          className="w-full bg-white/5 border border-white/10 focus:border-accent p-3 text-sm text-white outline-none appearance-none transition-all"
                         >
-                          <option value="">Select category...</option>
+                          <option value="" className="bg-primary">
+                            Select...
+                          </option>
                           {categories.map((cat) => (
-                            <option key={cat._id} value={cat.name}>
+                            <option key={cat._id} value={cat.name} className="bg-primary">
                               {cat.name}
                             </option>
                           ))}
                         </select>
                       </div>
                       <div className="space-y-2">
-                        <label className="text-[11px] font-black uppercase tracking-widest text-primary ml-2">
+                        <label className="text-[9px] font-black uppercase tracking-widest text-white/30">
                           SubCategory *
                         </label>
                         <select
                           {...register("subCategory", { required: true })}
-                          className="w-full bg-secondary border-none  p-4 outline-none font-bold text-primary appearance-none"
+                          className="w-full bg-white/5 border border-white/10 focus:border-accent p-3 text-sm text-white outline-none appearance-none transition-all"
                         >
-                          <option value="">Select subcategory...</option>
+                          <option value="" className="bg-primary">
+                            Select...
+                          </option>
                           {subCategories
-                            .filter(
-                              (sub) =>
-                                !selectedCategory ||
-                                sub.parentCategory === selectedCategory,
-                            )
+                            .filter((sub) => !selectedCategory || sub.parentCategory === selectedCategory)
                             .map((sub) => (
-                              <option key={sub._id} value={sub.name}>
+                              <option key={sub._id} value={sub.name} className="bg-primary">
                                 {sub.name}
                               </option>
                             ))}
@@ -628,16 +548,16 @@ export default function SupplierProductsTable({
                     </div>
 
                     <div className="space-y-2">
-                      <label className="text-[11px] font-black uppercase tracking-widest text-primary ml-2">
-                        Brand *
-                      </label>
+                      <label className="text-[9px] font-black uppercase tracking-widest text-white/30">Brand *</label>
                       <select
                         {...register("brand", { required: true })}
-                        className="w-full bg-secondary border-none  p-4 outline-none font-bold text-primary appearance-none"
+                        className="w-full bg-white/5 border border-white/10 focus:border-accent p-3 text-sm text-white outline-none appearance-none transition-all"
                       >
-                        <option value="">Select brand...</option>
+                        <option value="" className="bg-primary">
+                          Select brand...
+                        </option>
                         {brands.map((brand) => (
-                          <option key={brand._id} value={brand.name}>
+                          <option key={brand._id} value={brand.name} className="bg-primary">
                             {brand.name}
                           </option>
                         ))}
@@ -645,22 +565,25 @@ export default function SupplierProductsTable({
                     </div>
 
                     <div className="space-y-2">
-                      <label className="text-[11px] font-black uppercase tracking-widest text-primary ml-2">
+                      <label className="text-[9px] font-black uppercase tracking-widest text-white/30">
                         Parent Category *
                       </label>
                       <select
                         {...register("parentCategory", { required: true })}
-                        className="w-full bg-secondary border-none  p-4 outline-none font-bold text-primary appearance-none"
+                        className="w-full bg-white/5 border border-white/10 focus:border-accent p-3 text-sm text-white outline-none appearance-none transition-all"
                       >
-                        <option value="detail">Detail</option>
-                        <option value="gros">Gros</option>
+                        <option value="detail" className="bg-primary">
+                          Detail
+                        </option>
+                        <option value="gros" className="bg-primary">
+                          Gros
+                        </option>
                       </select>
                     </div>
 
+                    {/* Sizes */}
                     <div className="space-y-2">
-                      <label className="text-[11px] font-black uppercase tracking-widest text-primary ml-2">
-                        Sizes
-                      </label>
+                      <label className="text-[9px] font-black uppercase tracking-widest text-white/30">Sizes</label>
                       <div className="flex gap-2">
                         <input
                           value={sizeInput}
@@ -668,30 +591,24 @@ export default function SupplierProductsTable({
                           onKeyDown={(e) => {
                             if (e.key === "Enter") {
                               e.preventDefault();
-                              if (
-                                sizeInput.trim() &&
-                                !sizes.includes(sizeInput.trim())
-                              ) {
+                              if (sizeInput.trim() && !sizes.includes(sizeInput.trim())) {
                                 setSizes([...sizes, sizeInput.trim()]);
                                 setSizeInput("");
                               }
                             }
                           }}
-                          className="flex-1 bg-secondary border-none p-4 outline-none font-bold text-primary"
+                          className="flex-1 bg-white/5 border border-white/10 focus:border-accent p-3 text-sm text-white placeholder:text-white/20 outline-none transition-all"
                           placeholder="e.g. S, M, L, XL"
                         />
                         <button
                           type="button"
                           onClick={() => {
-                            if (
-                              sizeInput.trim() &&
-                              !sizes.includes(sizeInput.trim())
-                            ) {
+                            if (sizeInput.trim() && !sizes.includes(sizeInput.trim())) {
                               setSizes([...sizes, sizeInput.trim()]);
                               setSizeInput("");
                             }
                           }}
-                          className="bg-accent/10 text-accent font-black uppercase text-[10px] tracking-widest px-4 hover:bg-accent/20 transition-all cursor-pointer"
+                          className="bg-accent/10 text-accent px-4 hover:bg-accent/20 transition-all cursor-pointer"
                         >
                           <Plus size={16} />
                         </button>
@@ -701,15 +618,13 @@ export default function SupplierProductsTable({
                           {sizes.map((size) => (
                             <span
                               key={size}
-                              className="bg-secondary text-primary font-bold text-xs px-3 py-1 flex items-center gap-1"
+                              className="bg-white/10 text-white font-bold text-xs px-3 py-1 flex items-center gap-1"
                             >
                               {size}
                               <button
                                 type="button"
-                                onClick={() =>
-                                  setSizes(sizes.filter((s) => s !== size))
-                                }
-                                className="text-text-dark/30 hover:text-red-500 cursor-pointer"
+                                onClick={() => setSizes(sizes.filter((s) => s !== size))}
+                                className="text-white/30 hover:text-red-400 cursor-pointer"
                               >
                                 <X size={12} />
                               </button>
@@ -719,21 +634,22 @@ export default function SupplierProductsTable({
                       )}
                     </div>
 
+                    {/* Colors */}
                     <div className="space-y-2">
-                      <label className="text-[11px] font-black uppercase tracking-widest text-primary ml-2">
-                        Colors
-                      </label>
+                      <label className="text-[9px] font-black uppercase tracking-widest text-white/30">Colors</label>
                       <div className="flex gap-2">
                         <select
                           value={selectedDbColor}
                           onChange={(e) => setSelectedDbColor(e.target.value)}
-                          className="flex-1 bg-secondary border-none p-4 outline-none font-bold text-primary appearance-none"
+                          className="flex-1 bg-white/5 border border-white/10 focus:border-accent p-3 text-sm text-white outline-none appearance-none transition-all"
                         >
-                          <option value="">— Select a color —</option>
+                          <option value="" className="bg-primary">
+                            — Select a color —
+                          </option>
                           {dbColors
                             .filter((c) => !colors.includes(c.name))
                             .map((c) => (
-                              <option key={c._id} value={c.name}>
+                              <option key={c._id} value={c.name} className="bg-primary">
                                 {c.name} ({c.hex})
                               </option>
                             ))}
@@ -741,15 +657,12 @@ export default function SupplierProductsTable({
                         <button
                           type="button"
                           onClick={() => {
-                            if (
-                              selectedDbColor &&
-                              !colors.includes(selectedDbColor)
-                            ) {
+                            if (selectedDbColor && !colors.includes(selectedDbColor)) {
                               setColors([...colors, selectedDbColor]);
                               setSelectedDbColor("");
                             }
                           }}
-                          className="bg-accent/10 text-accent font-black uppercase text-[10px] tracking-widest px-4 hover:bg-accent/20 transition-all cursor-pointer"
+                          className="bg-accent/10 text-accent px-4 hover:bg-accent/20 transition-all cursor-pointer"
                         >
                           <Plus size={16} />
                         </button>
@@ -759,30 +672,19 @@ export default function SupplierProductsTable({
                           {colors.map((color) => (
                             <div
                               key={color}
-                              className="flex items-center gap-2 bg-secondary px-3 py-2"
+                              className="flex items-center gap-2 bg-white/5 border border-white/10 px-3 py-2"
                             >
-                              <span className="flex-1 text-primary font-bold text-xs">
-                                {color}
-                              </span>
-                              {colorImages[color] ? (
-                                <div className="relative w-10 h-10 overflow-hidden bg-white border border-gray-100 flex-shrink-0">
+                              <span className="flex-1 text-white font-bold text-xs">{color}</span>
+                              {colorImages[color] && (
+                                <div className="relative w-8 h-8 overflow-hidden border border-white/10 shrink-0">
                                   {/* eslint-disable-next-line @next/next/no-img-element */}
-                                  <img
-                                    src={colorImages[color]}
-                                    alt={color}
-                                    className="w-full h-full object-cover"
-                                  />
+                                  <img src={colorImages[color]} alt={color} className="w-full h-full object-cover" />
                                 </div>
-                              ) : null}
+                              )}
                               <ImageUpload
-                                onSuccess={(url) => {
-                                  setColorImages((prev) => ({
-                                    ...prev,
-                                    [color]: url,
-                                  }));
-                                }}
-                                label={colorImages[color] ? "Changer" : "Image"}
-                                buttonClassName="text-[9px] font-black uppercase tracking-widest text-accent border border-accent/30 px-2 py-1 hover:bg-accent/10 transition-all cursor-pointer flex-shrink-0"
+                                onSuccess={(url) => setColorImages((prev) => ({ ...prev, [color]: url }))}
+                                label={colorImages[color] ? "Change" : "Image"}
+                                buttonClassName="text-[9px] font-black uppercase tracking-widest text-accent border border-accent/30 px-2 py-1 hover:bg-accent/10 transition-all cursor-pointer shrink-0"
                               />
                               <button
                                 type="button"
@@ -794,7 +696,7 @@ export default function SupplierProductsTable({
                                     return n;
                                   });
                                 }}
-                                className="text-text-dark/30 hover:text-red-500 cursor-pointer flex-shrink-0"
+                                className="text-white/30 hover:text-red-400 cursor-pointer shrink-0"
                               >
                                 <X size={12} />
                               </button>
@@ -806,72 +708,68 @@ export default function SupplierProductsTable({
 
                     <div className="grid grid-cols-3 gap-4">
                       <div className="space-y-2">
-                        <label className="text-[11px] font-black uppercase tracking-widest text-primary ml-2">
-                          Price *
-                        </label>
+                        <label className="text-[9px] font-black uppercase tracking-widest text-white/30">Price *</label>
                         <input
                           type="number"
                           {...register("price", { required: true })}
-                          className="w-full bg-secondary border-none  p-4 outline-none font-bold text-primary"
+                          className="w-full bg-white/5 border border-white/10 focus:border-accent p-3 text-sm text-white outline-none transition-all"
                           placeholder="0"
                         />
                       </div>
                       <div className="space-y-2">
-                        <label className="text-[11px] font-black uppercase tracking-widest text-primary ml-2">
-                          Discount Price
+                        <label className="text-[9px] font-black uppercase tracking-widest text-white/30">
+                          Discount
                         </label>
                         <input
                           type="number"
                           {...register("discountPrice")}
-                          className="w-full bg-secondary border-none  p-4 outline-none font-bold text-red-500"
+                          className="w-full bg-white/5 border border-white/10 focus:border-accent p-3 text-sm text-red-400 outline-none transition-all"
                           placeholder="Optional"
                         />
                       </div>
                       <div className="space-y-2">
-                        <label className="text-[11px] font-black uppercase tracking-widest text-primary ml-2">
-                          In Stock *
-                        </label>
+                        <label className="text-[9px] font-black uppercase tracking-widest text-white/30">Stock *</label>
                         <input
                           type="number"
                           {...register("countInStock", { required: true })}
-                          className="w-full bg-secondary border-none  p-4 outline-none font-bold text-primary"
+                          className="w-full bg-white/5 border border-white/10 focus:border-accent p-3 text-sm text-white outline-none transition-all"
                           placeholder="0"
                         />
                       </div>
                     </div>
                   </div>
 
-                  {/* Right Side: Media & Details */}
-                  <div className="space-y-6">
+                  {/* Right */}
+                  <div className="space-y-5">
                     <div className="space-y-2">
-                      <label className="text-[11px] font-black uppercase tracking-widest text-primary ml-2">
+                      <label className="text-[9px] font-black uppercase tracking-widest text-white/30">
                         Description *
                       </label>
                       <textarea
                         {...register("description", { required: true })}
-                        className="w-full bg-secondary border-none  p-4 outline-none font-bold text-primary min-h-[120px]"
+                        className="w-full bg-white/5 border border-white/10 focus:border-accent p-3 text-sm text-white placeholder:text-white/20 outline-none transition-all min-h-[120px] resize-none"
                         placeholder="Describe your product..."
                       />
                     </div>
 
                     <div className="grid grid-cols-2 gap-4">
                       <div className="space-y-2">
-                        <label className="text-[11px] font-black uppercase tracking-widest text-primary ml-2">
+                        <label className="text-[9px] font-black uppercase tracking-widest text-white/30">
                           Delivery Time
                         </label>
                         <input
                           {...register("deliveryTime")}
-                          className="w-full bg-secondary border-none  p-4 outline-none font-bold text-primary"
+                          className="w-full bg-white/5 border border-white/10 focus:border-accent p-3 text-sm text-white placeholder:text-white/20 outline-none transition-all"
                           placeholder="e.g. 3-5 days"
                         />
                       </div>
                       <div className="space-y-2">
-                        <label className="text-[11px] font-black uppercase tracking-widest text-primary ml-2">
+                        <label className="text-[9px] font-black uppercase tracking-widest text-white/30">
                           Dimensions
                         </label>
                         <input
                           {...register("dimensions")}
-                          className="w-full bg-secondary border-none  p-4 outline-none font-bold text-primary"
+                          className="w-full bg-white/5 border border-white/10 focus:border-accent p-3 text-sm text-white placeholder:text-white/20 outline-none transition-all"
                           placeholder="e.g. 20x30x10 cm"
                         />
                       </div>
@@ -880,24 +778,20 @@ export default function SupplierProductsTable({
                 </div>
               </div>
 
-              <div className="p-10 pt-6 border-t border-gray-50 flex gap-4 bg-white">
+              <div className="px-8 py-5 border-t border-white/10 flex gap-4">
                 <button
                   type="button"
                   onClick={() => setShowModal(false)}
-                  className="flex-1 text-primary font-black uppercase text-[10px] tracking-widest py-6 hover:bg-secondary  transition-all cursor-pointer"
+                  className="flex-1 text-white/50 font-black uppercase text-[10px] tracking-widest py-4 border border-white/10 hover:bg-white/5 transition-all cursor-pointer"
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
                   disabled={saving}
-                  className="flex-1 bg-primary text-white font-black uppercase text-[10px] tracking-widest py-6  shadow-xl hover:bg-black transition-all cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
+                  className="flex-1 bg-accent hover:bg-accent/80 text-primary font-black uppercase text-[10px] tracking-widest py-4 transition-all cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
                 >
-                  {saving
-                    ? "Saving..."
-                    : editingProduct
-                      ? "Update Product"
-                      : "Submit for Approval"}
+                  {saving ? "Saving..." : editingProduct ? "Update Product" : "Submit for Approval"}
                 </button>
               </div>
             </form>

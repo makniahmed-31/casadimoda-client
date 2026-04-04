@@ -1,12 +1,12 @@
 "use client";
 
-import React, { useState } from "react";
 import { Link } from "@/i18n/routing";
-import { useForm } from "react-hook-form";
-import { signIn, getSession } from "next-auth/react";
-import { useRouter } from "next/navigation";
-import { useTranslations } from "next-intl";
 import { apiFetch } from "@/utils/api";
+import { getSession, signIn } from "next-auth/react";
+import { useTranslations } from "next-intl";
+import { useRouter } from "next/navigation";
+import { useState } from "react";
+import { useForm } from "react-hook-form";
 
 type RegisterInput = {
   name: string;
@@ -56,7 +56,7 @@ export default function RegisterPage() {
         const role = (session?.user as { role?: string })?.role;
         const isAdmin = (session?.user as { isAdmin?: boolean })?.isAdmin;
         if (isAdmin || role === "admin") router.push("/admin");
-        else if (role === "supplier") router.push("/fournisseur");
+        else if (role === "supplier") router.push("/supplier");
         else if (role === "transporter") router.push("/transporter");
         else router.push("/");
       }
@@ -74,9 +74,7 @@ export default function RegisterPage() {
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-16 w-full max-w-6xl mx-auto items-start">
           {/* LEFT — Form */}
           <div className="py-8">
-            <h1 className="font-serif text-5xl md:text-6xl text-white mb-10">
-              {t("createAccount")}
-            </h1>
+            <h1 className="font-serif text-5xl md:text-6xl text-white mb-10">{t("createAccount")}</h1>
 
             {error && (
               <div className="mb-5 p-3 bg-red-500/10 border border-red-500/30">
@@ -84,15 +82,10 @@ export default function RegisterPage() {
               </div>
             )}
 
-            <form
-              onSubmit={handleSubmit(onSubmit)}
-              className="space-y-4 max-w-sm"
-            >
+            <form onSubmit={handleSubmit(onSubmit)} className="space-y-4 max-w-sm">
               {/* Name */}
               <div className="space-y-1.5">
-                <label className="text-[10px] font-bold uppercase tracking-widest text-white/40">
-                  {t("fullName")}
-                </label>
+                <label className="text-[10px] font-bold uppercase tracking-widest text-white/40">{t("fullName")}</label>
                 <input
                   {...register("name", {
                     required: t("nameRequired"),
@@ -102,11 +95,7 @@ export default function RegisterPage() {
                   placeholder={t("fullNamePlaceholder")}
                   className="w-full bg-white/10 border border-white/10 focus:border-accent py-3.5 px-4 text-sm text-white placeholder:text-white/20 outline-none transition-all"
                 />
-                {errors.name && (
-                  <p className="text-[10px] font-bold text-red-400 uppercase">
-                    {errors.name.message}
-                  </p>
-                )}
+                {errors.name && <p className="text-[10px] font-bold text-red-400 uppercase">{errors.name.message}</p>}
               </div>
 
               {/* Email */}
@@ -126,18 +115,12 @@ export default function RegisterPage() {
                   placeholder={t("emailPlaceholder")}
                   className="w-full bg-white/10 border border-white/10 focus:border-accent py-3.5 px-4 text-sm text-white placeholder:text-white/20 outline-none transition-all"
                 />
-                {errors.email && (
-                  <p className="text-[10px] font-bold text-red-400 uppercase">
-                    {errors.email.message}
-                  </p>
-                )}
+                {errors.email && <p className="text-[10px] font-bold text-red-400 uppercase">{errors.email.message}</p>}
               </div>
 
               {/* Password */}
               <div className="space-y-1.5">
-                <label className="text-[10px] font-bold uppercase tracking-widest text-white/40">
-                  {t("password")}
-                </label>
+                <label className="text-[10px] font-bold uppercase tracking-widest text-white/40">{t("password")}</label>
                 <input
                   {...register("password", {
                     required: t("passwordRequired"),
@@ -148,9 +131,7 @@ export default function RegisterPage() {
                   className="w-full bg-white/10 border border-white/10 focus:border-accent py-3.5 px-4 text-sm text-white placeholder:text-white/20 outline-none transition-all"
                 />
                 {errors.password && (
-                  <p className="text-[10px] font-bold text-red-400 uppercase">
-                    {errors.password.message}
-                  </p>
+                  <p className="text-[10px] font-bold text-red-400 uppercase">{errors.password.message}</p>
                 )}
               </div>
 
@@ -220,9 +201,7 @@ export default function RegisterPage() {
 
           {/* RIGHT — Récachres actualités */}
           <div className="hidden lg:block py-8">
-            <p className="text-[10px] font-black uppercase tracking-widest text-white/40 mb-5">
-              {t("latestNews")}
-            </p>
+            <p className="text-[10px] font-black uppercase tracking-widest text-white/40 mb-5">{t("latestNews")}</p>
             <div className="grid grid-cols-2 gap-4">
               {/* Sneakers */}
               <div className="relative aspect-[3/4] overflow-hidden">
@@ -245,16 +224,12 @@ export default function RegisterPage() {
               {/* Louis Vuitton card */}
               <div className="bg-white/5 border border-white/10 p-4">
                 <p className="text-white font-bold text-sm">Louis Vuitton</p>
-                <p className="text-accent font-black text-base mt-1">
-                  5,800 TND
-                </p>
+                <p className="text-accent font-black text-base mt-1">5,800 TND</p>
               </div>
               {/* Versace card */}
               <div className="bg-white/5 border border-white/10 p-4">
                 <p className="text-white font-bold text-sm">Versace</p>
-                <p className="text-accent font-black text-base mt-1">
-                  1,400 TND
-                </p>
+                <p className="text-accent font-black text-base mt-1">1,400 TND</p>
               </div>
             </div>
           </div>

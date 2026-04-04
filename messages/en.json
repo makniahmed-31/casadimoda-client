@@ -13,6 +13,7 @@
     "login": "Sign In",
     "signedInAs": "Signed in as",
     "adminDashboard": "Admin Dashboard",
+    "supplierDashboard": "Supplier Dashboard",
     "myProfile": "My Profile",
     "myOrders": "My Orders",
     "logout": "Sign Out",
@@ -776,7 +777,13 @@
     "statusRejected": "Rejected",
     "orderStatusInProgress": "IN PROGRESS",
     "orderStatusPaid": "Paid",
-    "orderStatusWaiting": "Pending"
+    "orderStatusWaiting": "Pending",
+    "totalRevenue": "Total Revenue",
+    "totalOrders": "Total Orders",
+    "totalProducts": "Total Products",
+    "rating": "Rating",
+    "netRevenue": "Net Revenue",
+    "commissionRate": "Commission"
   },
   "supplierOrders": {
     "title": "My Orders",

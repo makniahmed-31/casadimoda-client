@@ -8,6 +8,7 @@ jobs:
   deploy:
     name: Deploy Next.js Client
     runs-on: ubuntu-latest
+    environment: NEXTAUTH_SECRET
 
     steps:
       - name: Deploy via SSH

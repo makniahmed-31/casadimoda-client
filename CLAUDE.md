@@ -33,7 +33,7 @@ app/
       become-supplier/
       supplier/[slug]/
     admin/           ← Admin panel (separate route group)
-    fournisseur/     ← Supplier portal (separate route group)
+    supplier/     ← Supplier portal (separate route group)
   api/
     auth/[...nextauth]/
     user/
@@ -141,7 +141,7 @@ const docs = await SomeModel.find().lean();
 | `/become-supplier` | Supplier application              |
 | `/supplier/[slug]` | Supplier storefront               |
 | `/admin`           | Admin dashboard                   |
-| `/fournisseur`     | Supplier portal                   |
+| `/supplier`        | Supplier portal                   |
 
 ## API Routes
 
