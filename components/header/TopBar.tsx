@@ -15,6 +15,7 @@ import { useEffect, useRef, useState } from "react";
 export default function TopBar() {
   const t = useTranslations("nav");
   const { state } = useStore();
+
   const { cart } = state;
   const { data: session } = useSession();
   const [searchQuery, setSearchQuery] = useState("");
@@ -32,6 +33,8 @@ export default function TopBar() {
     isAdmin?: boolean;
     expressToken?: string;
   } | null;
+  const isCustomer = !session || session.user.role === "customer";
+
   const isAdminOrSupplier =
     sessionUser?.isAdmin || sessionUser?.role === "supplier" || sessionUser?.role === "transporter";
 
@@ -212,13 +215,15 @@ export default function TopBar() {
                         >
                           {t("myProfile")}
                         </Link>
-                        <Link
-                          href="/orders"
-                          onClick={() => setShowAccountMenu(false)}
-                          className="px-4 py-2.5 text-xs font-medium text-primary hover:bg-accent hover:text-secondary transition-colors"
-                        >
-                          {t("myOrders")}
-                        </Link>
+                        {session.user.role === "customer" && (
+                          <Link
+                            href="/orders"
+                            onClick={() => setShowAccountMenu(false)}
+                            className="px-4 py-2.5 text-xs font-medium text-primary hover:bg-accent hover:text-secondary transition-colors"
+                          >
+                            {t("myOrders")}
+                          </Link>
+                        )}
                         <div className="h-px bg-gray-100 mx-4 my-1" />
                         <button
                           onClick={() => signOut()}
@@ -271,13 +276,15 @@ export default function TopBar() {
               </div>
 
               {/* Favorites */}
-              <Link
-                href="/products"
-                className="hidden md:flex items-center gap-1.5 text-secondary/70 hover:text-accent transition-colors"
-              >
-                <Heart className="w-[18px] h-[18px]" />
-                <span className="text-xs font-medium">{t("favorites")}</span>
-              </Link>
+              {isCustomer && (
+                <Link
+                  href="/products"
+                  className="hidden md:flex items-center gap-1.5 text-secondary/70 hover:text-accent transition-colors"
+                >
+                  <Heart className="w-[18px] h-[18px]" />
+                  <span className="text-xs font-medium">{t("favorites")}</span>
+                </Link>
+              )}
 
               {/* Cart (customers) / Notifications (admin & supplier) */}
               {isAdminOrSupplier ? (

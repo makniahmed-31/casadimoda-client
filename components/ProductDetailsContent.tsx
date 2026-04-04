@@ -22,6 +22,7 @@ export default function ProductDetailsContent({ product }: ProductDetailsContent
   const tn = useTranslations("nav");
   const tp = useTranslations("products");
   const { data: session } = useSession();
+  const isCustomer = !session || session.user.role === "customer";
   const { state, dispatch } = useStore();
   const [qty, setQty] = useState(1);
   const [isAdded, setIsAdded] = useState(false);
@@ -545,29 +546,33 @@ export default function ProductDetailsContent({ product }: ProductDetailsContent
             )}
 
             {/* Add to Cart Button */}
-            <button
-              onClick={addToCartHandler}
-              disabled={product.countInStock === 0}
-              className={`w-full py-3 md:py-3.5 font-bold uppercase tracking-[0.2em] text-[10px] md:text-xs transition-all cursor-pointer mb-2 ${
-                isAdded ? "bg-green-700 text-white" : "bg-primary text-white hover:bg-accent"
-              } disabled:bg-gray-200 disabled:text-gray-400 disabled:cursor-not-allowed`}
-            >
-              {isAdded ? t("addedToCart") : isWholesale ? tp("configureOrder") : tp("addToCart")}
-            </button>
+            {isCustomer && (
+              <button
+                onClick={addToCartHandler}
+                disabled={product.countInStock === 0}
+                className={`w-full py-3 md:py-3.5 font-bold uppercase tracking-[0.2em] text-[10px] md:text-xs transition-all cursor-pointer mb-2 ${
+                  isAdded ? "bg-green-700 text-white" : "bg-primary text-white hover:bg-accent"
+                } disabled:bg-gray-200 disabled:text-gray-400 disabled:cursor-not-allowed`}
+              >
+                {isAdded ? t("addedToCart") : isWholesale ? tp("configureOrder") : tp("addToCart")}
+              </button>
+            )}
 
             {/* Wishlist */}
-            <button
-              onClick={toggleWishlist}
-              disabled={wishlistLoading}
-              className={`w-full py-2.5 md:py-3 border text-[10px] md:text-xs font-medium uppercase tracking-wider transition-all cursor-pointer flex items-center justify-center gap-2 mb-5 md:mb-8 disabled:opacity-50 disabled:cursor-not-allowed ${
-                isWishlisted
-                  ? "border-accent bg-accent/10 text-accent"
-                  : "border-gray-200 hover:border-primary text-primary/60 hover:text-primary"
-              }`}
-            >
-              <Heart className={`w-3.5 h-3.5 ${isWishlisted ? "fill-accent" : ""}`} />
-              {isWishlisted ? t("removeFromWishlist") : t("addToWishlist")}
-            </button>
+            {isCustomer && (
+              <button
+                onClick={toggleWishlist}
+                disabled={wishlistLoading}
+                className={`w-full py-2.5 md:py-3 border text-[10px] md:text-xs font-medium uppercase tracking-wider transition-all cursor-pointer flex items-center justify-center gap-2 mb-5 md:mb-8 disabled:opacity-50 disabled:cursor-not-allowed ${
+                  isWishlisted
+                    ? "border-accent bg-accent/10 text-accent"
+                    : "border-gray-200 hover:border-primary text-primary/60 hover:text-primary"
+                }`}
+              >
+                <Heart className={`w-3.5 h-3.5 ${isWishlisted ? "fill-accent" : ""}`} />
+                {isWishlisted ? t("removeFromWishlist") : t("addToWishlist")}
+              </button>
+            )}
 
             {/* Delivery & Returns */}
             <div className="border-t border-gray-200 pt-4 md:pt-6 mb-5 md:mb-8">

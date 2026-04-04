@@ -1,14 +1,14 @@
 "use client";
 
-import { useState, useRef, useCallback, useEffect } from "react";
-import Image from "next/image";
 import { Link, useRouter } from "@/i18n/routing";
-import { useStore } from "@/utils/context/Store";
 import { CartItem, CartVariation } from "@/types";
-import { Minus, Plus, ShoppingBag, X } from "lucide-react";
-import { useTranslations } from "next-intl";
-import { useSession } from "next-auth/react";
 import { apiFetch } from "@/utils/api";
+import { useStore } from "@/utils/context/Store";
+import { Minus, Plus, ShoppingBag, X } from "lucide-react";
+import { useSession } from "next-auth/react";
+import { useTranslations } from "next-intl";
+import Image from "next/image";
+import { useCallback, useEffect, useRef, useState } from "react";
 
 export default function CartPage() {
   const t = useTranslations("checkout");
@@ -25,7 +25,11 @@ export default function CartPage() {
   const [promoLoading, setPromoLoading] = useState(false);
 
   const [giftCardCode, setGiftCardCode] = useState("");
-  const [giftCardApplied, setGiftCardApplied] = useState<{ code: string; balance: number; discountAmount: number } | null>(null);
+  const [giftCardApplied, setGiftCardApplied] = useState<{
+    code: string;
+    balance: number;
+    discountAmount: number;
+  } | null>(null);
   const [giftCardError, setGiftCardError] = useState("");
   const [giftCardLoading, setGiftCardLoading] = useState(false);
   const [fullName, setFullName] = useState("");
@@ -45,14 +49,11 @@ export default function CartPage() {
     dispatch({ type: "CART_ADD_ITEM", payload: { ...item, ...updates } });
   };
 
-  const removeItemHandler = (item: CartItem) =>
-    dispatch({ type: "CART_REMOVE_ITEM", payload: item });
+  const removeItemHandler = (item: CartItem) => dispatch({ type: "CART_REMOVE_ITEM", payload: item });
 
   // Wholesale: update a variation row
   const updateVariation = (item: CartItem, i: number, field: keyof CartVariation, value: string | number) => {
-    const updated = (item.variations ?? []).map((v, j) =>
-      j === i ? { ...v, [field]: value } : v
-    );
+    const updated = (item.variations ?? []).map((v, j) => (j === i ? { ...v, [field]: value } : v));
     const totalQty = updated.reduce((s, v) => s + v.quantity, 0);
     updateCartItem(item, { variations: updated, quantity: totalQty });
   };
@@ -77,8 +78,7 @@ export default function CartPage() {
   const startAdjusting = useCallback(
     (item: CartItem, direction: "up" | "down") => {
       const adjust = () => {
-        const newQty =
-          direction === "up" ? item.quantity + 1 : item.quantity - 1;
+        const newQty = direction === "up" ? item.quantity + 1 : item.quantity - 1;
         if (newQty >= 1 && newQty <= item.countInStock) {
           dispatch({ type: "CART_ADD_ITEM", payload: { ...item, quantity: newQty } });
         }
@@ -88,7 +88,7 @@ export default function CartPage() {
         intervalRef.current = setInterval(adjust, 100);
       }, 500);
     },
-    [dispatch],
+    [dispatch]
   );
   const stopAdjusting = useCallback(() => {
     if (timerRef.current) clearTimeout(timerRef.current);
@@ -101,14 +101,8 @@ export default function CartPage() {
     if (session?.user?.name) setFullName(session.user.name);
   }, [session]);
 
-  const subtotal = cartItems.reduce(
-    (a, c) => a + (c.quantity || 0) * (c.discountPrice || c.price || 0),
-    0,
-  );
-  const originalTotal = cartItems.reduce(
-    (a, c) => a + (c.quantity || 0) * (c.price || 0),
-    0,
-  );
+  const subtotal = cartItems.reduce((a, c) => a + (c.quantity || 0) * (c.discountPrice || c.price || 0), 0);
+  const originalTotal = cartItems.reduce((a, c) => a + (c.quantity || 0) * (c.price || 0), 0);
   const totalDiscount = originalTotal - subtotal;
   const promoDiscount = promoApplied?.discountAmount ?? 0;
   const giftCardDiscount = giftCardApplied?.discountAmount ?? 0;
@@ -180,14 +174,33 @@ export default function CartPage() {
           }
         }
       } else {
-        if (item.colors?.length && !item.selectedColor)
-          errors.push(`${item.name}: couleur non sélectionnée`);
-        if (item.sizes?.length && !item.selectedSize)
-          errors.push(`${item.name}: taille non sélectionnée`);
+        if (item.colors?.length && !item.selectedColor) errors.push(`${item.name}: couleur non sélectionnée`);
+        if (item.sizes?.length && !item.selectedSize) errors.push(`${item.name}: taille non sélectionnée`);
       }
     }
     return errors;
   };
+
+  if (session && session.user.role !== "customer") {
+    return (
+      <div
+        className="min-h-[calc(100dvh-var(--header-height,80px))] bg-cover bg-center flex flex-col items-center justify-center text-center px-4"
+        style={{ backgroundImage: "url('/bgg.webp')" }}
+      >
+        <div className="w-20 h-20 border border-white/10 bg-white/5 flex items-center justify-center mb-6">
+          <ShoppingBag className="w-8 h-8 text-accent/40" />
+        </div>
+        <h1 className="font-serif text-3xl font-bold italic text-white mb-4">Access Restricted</h1>
+        <p className="text-white/40 text-sm mb-6">This page is only available for customer accounts.</p>
+        <Link
+          href="/"
+          className="bg-accent text-primary px-10 py-4 font-black uppercase text-xs tracking-[0.2em] hover:bg-accent/80 transition-all"
+        >
+          Go Home
+        </Link>
+      </div>
+    );
+  }
 
   if (cartItems.length === 0) {
     return (
@@ -198,9 +211,7 @@ export default function CartPage() {
         <div className="w-20 h-20 border border-white/10 bg-white/5 flex items-center justify-center mb-6">
           <ShoppingBag className="w-8 h-8 text-accent/40" />
         </div>
-        <h1 className="font-serif text-4xl font-bold italic text-white mb-4">
-          {t("emptyCart")}
-        </h1>
+        <h1 className="font-serif text-4xl font-bold italic text-white mb-4">{t("emptyCart")}</h1>
         <Link
           href="/"
           className="bg-accent text-primary px-10 py-4 font-black uppercase text-xs tracking-[0.2em] hover:bg-accent/80 transition-all mt-4"
@@ -219,16 +230,12 @@ export default function CartPage() {
       style={{ backgroundImage: "url('/bgg.webp')" }}
     >
       <div className="max-w-6xl mx-auto px-6 md:px-12 py-10">
-        <h1 className="font-serif text-5xl md:text-6xl font-bold italic text-white mb-10">
-          {t("title")}
-        </h1>
+        <h1 className="font-serif text-5xl md:text-6xl font-bold italic text-white mb-10">{t("title")}</h1>
 
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
           {/* LEFT — Items */}
           <div className="lg:col-span-7 space-y-6">
-            <p className="text-[10px] font-black uppercase tracking-widest text-white/50">
-              {t("orderSummary")}
-            </p>
+            <p className="text-[10px] font-black uppercase tracking-widest text-white/50">{t("orderSummary")}</p>
 
             <div className="space-y-4">
               {cartItems.map((item) => {
@@ -236,31 +243,19 @@ export default function CartPage() {
                 const unitPrice = item.discountPrice || item.price;
 
                 return (
-                  <div
-                    key={item.slug}
-                    className="bg-black/30 border border-white/10 p-4"
-                  >
+                  <div key={item.slug} className="bg-black/30 border border-white/10 p-4">
                     <div className="flex gap-4">
                       <Link
                         href={`/product/${item.slug}`}
                         className="relative w-16 h-20 shrink-0 overflow-hidden bg-white/10"
                       >
-                        <Image
-                          src={item.image}
-                          alt={item.name}
-                          fill
-                          className="object-cover"
-                        />
+                        <Image src={item.image} alt={item.name} fill className="object-cover" />
                       </Link>
                       <div className="flex-1">
                         <div className="flex justify-between items-start mb-3">
                           <div>
-                            <p className="text-xs font-black text-white/50 uppercase tracking-widest">
-                              {item.name}
-                            </p>
-                            <p className="text-sm font-black text-white mt-0.5">
-                              CASA DI MODA
-                            </p>
+                            <p className="text-xs font-black text-white/50 uppercase tracking-widest">{item.name}</p>
+                            <p className="text-sm font-black text-white mt-0.5">CASA DI MODA</p>
                             {isWholesale && (
                               <span className="text-[9px] font-black text-accent/70 uppercase tracking-widest">
                                 Gros · {unitPrice.toLocaleString()} TND/unité
@@ -288,7 +283,9 @@ export default function CartPage() {
                                   >
                                     <option value="">Couleur</option>
                                     {item.colors!.map((c) => (
-                                      <option key={c} value={c} className="text-black">{c}</option>
+                                      <option key={c} value={c} className="text-black">
+                                        {c}
+                                      </option>
                                     ))}
                                   </select>
                                 )}
@@ -300,7 +297,9 @@ export default function CartPage() {
                                   >
                                     <option value="">Taille</option>
                                     {item.sizes!.map((s) => (
-                                      <option key={s} value={s} className="text-black">{s}</option>
+                                      <option key={s} value={s} className="text-black">
+                                        {s}
+                                      </option>
                                     ))}
                                   </select>
                                 )}
@@ -355,18 +354,20 @@ export default function CartPage() {
                                   </p>
                                   <select
                                     value={item.selectedColor ?? ""}
-                                    onChange={(e) =>
-                                      updateCartItem(item, { selectedColor: e.target.value })
-                                    }
+                                    onChange={(e) => updateCartItem(item, { selectedColor: e.target.value })}
                                     className={`w-full bg-white/5 border text-white text-xs p-2 outline-none transition-all ${
                                       attempted && !item.selectedColor
                                         ? "border-red-500"
                                         : "border-white/20 focus:border-accent"
                                     }`}
                                   >
-                                    <option value="" className="text-black">— Choisir —</option>
+                                    <option value="" className="text-black">
+                                      — Choisir —
+                                    </option>
                                     {item.colors!.map((c) => (
-                                      <option key={c} value={c} className="text-black">{c}</option>
+                                      <option key={c} value={c} className="text-black">
+                                        {c}
+                                      </option>
                                     ))}
                                   </select>
                                 </div>
@@ -378,18 +379,20 @@ export default function CartPage() {
                                   </p>
                                   <select
                                     value={item.selectedSize ?? ""}
-                                    onChange={(e) =>
-                                      updateCartItem(item, { selectedSize: e.target.value })
-                                    }
+                                    onChange={(e) => updateCartItem(item, { selectedSize: e.target.value })}
                                     className={`w-full bg-white/5 border text-white text-xs p-2 outline-none transition-all ${
                                       attempted && !item.selectedSize
                                         ? "border-red-500"
                                         : "border-white/20 focus:border-accent"
                                     }`}
                                   >
-                                    <option value="" className="text-black">— Choisir —</option>
+                                    <option value="" className="text-black">
+                                      — Choisir —
+                                    </option>
                                     {item.sizes!.map((s) => (
-                                      <option key={s} value={s} className="text-black">{s}</option>
+                                      <option key={s} value={s} className="text-black">
+                                        {s}
+                                      </option>
                                     ))}
                                   </select>
                                 </div>
@@ -514,9 +517,7 @@ export default function CartPage() {
 
             <div className="sticky top-8 bg-black/50 border border-white/10 p-6">
               <div className="flex items-center justify-between mb-6 pb-4 border-b border-white/10">
-                <p className="text-[10px] font-black uppercase tracking-widest text-white/50">
-                  {t("viewSummary")}
-                </p>
+                <p className="text-[10px] font-black uppercase tracking-widest text-white/50">{t("viewSummary")}</p>
               </div>
 
               <div className="space-y-3 mb-6">
@@ -558,16 +559,10 @@ export default function CartPage() {
 
               <div className="border-t border-white/10 pt-5 mb-6">
                 <div className="flex justify-between items-end">
-                  <span className="text-[10px] font-black uppercase tracking-widest text-white/40">
-                    {t("total")}
-                  </span>
+                  <span className="text-[10px] font-black uppercase tracking-widest text-white/40">{t("total")}</span>
                   <div className="text-right">
-                    <span className="text-4xl font-black text-white">
-                      {finalTotal.toLocaleString()}
-                    </span>
-                    <span className="text-lg font-bold text-white/40 ml-1">
-                      {t("currency")}
-                    </span>
+                    <span className="text-4xl font-black text-white">{finalTotal.toLocaleString()}</span>
+                    <span className="text-lg font-bold text-white/40 ml-1">{t("currency")}</span>
                   </div>
                 </div>
               </div>
@@ -577,9 +572,14 @@ export default function CartPage() {
                 <p className="text-[10px] font-black uppercase tracking-widest text-white/40 mb-2">{t("promoCode")}</p>
                 {promoApplied ? (
                   <div className="flex items-center justify-between bg-green-500/10 border border-green-500/30 px-3 py-2">
-                    <span className="text-xs font-bold text-green-400 uppercase tracking-widest">{promoApplied.code} ✓</span>
+                    <span className="text-xs font-bold text-green-400 uppercase tracking-widest">
+                      {promoApplied.code} ✓
+                    </span>
                     <button
-                      onClick={() => { setPromoApplied(null); setPromoCode(""); }}
+                      onClick={() => {
+                        setPromoApplied(null);
+                        setPromoCode("");
+                      }}
                       className="text-[10px] text-white/30 hover:text-red-400 cursor-pointer uppercase tracking-widest"
                     >
                       {t("remove")}
@@ -590,7 +590,10 @@ export default function CartPage() {
                     <div className="flex gap-2">
                       <input
                         value={promoCode}
-                        onChange={(e) => { setPromoCode(e.target.value); setPromoError(""); }}
+                        onChange={(e) => {
+                          setPromoCode(e.target.value);
+                          setPromoError("");
+                        }}
                         onKeyDown={(e) => e.key === "Enter" && applyPromo()}
                         placeholder={t("promoPlaceholder")}
                         className="flex-1 bg-white/5 border border-white/10 focus:border-accent py-2.5 px-3 text-sm text-white placeholder:text-white/20 outline-none transition-all"
@@ -603,9 +606,7 @@ export default function CartPage() {
                         {promoLoading ? "..." : t("apply")}
                       </button>
                     </div>
-                    {promoError && (
-                      <p className="text-red-400 text-[10px] font-bold mt-1">{promoError}</p>
-                    )}
+                    {promoError && <p className="text-red-400 text-[10px] font-bold mt-1">{promoError}</p>}
                   </>
                 )}
               </div>
@@ -615,9 +616,14 @@ export default function CartPage() {
                 <p className="text-[10px] font-black uppercase tracking-widest text-white/40 mb-2">Gift Card</p>
                 {giftCardApplied ? (
                   <div className="flex items-center justify-between bg-yellow-500/10 border border-yellow-500/30 px-3 py-2">
-                    <span className="text-xs font-bold text-yellow-400 uppercase tracking-widest">🎁 {giftCardApplied.code} ✓</span>
+                    <span className="text-xs font-bold text-yellow-400 uppercase tracking-widest">
+                      🎁 {giftCardApplied.code} ✓
+                    </span>
                     <button
-                      onClick={() => { setGiftCardApplied(null); setGiftCardCode(""); }}
+                      onClick={() => {
+                        setGiftCardApplied(null);
+                        setGiftCardCode("");
+                      }}
                       className="text-[10px] text-white/30 hover:text-red-400 cursor-pointer uppercase tracking-widest"
                     >
                       {t("remove")}
@@ -628,7 +634,10 @@ export default function CartPage() {
                     <div className="flex gap-2">
                       <input
                         value={giftCardCode}
-                        onChange={(e) => { setGiftCardCode(e.target.value); setGiftCardError(""); }}
+                        onChange={(e) => {
+                          setGiftCardCode(e.target.value);
+                          setGiftCardError("");
+                        }}
                         onKeyDown={(e) => e.key === "Enter" && applyGiftCard()}
                         placeholder="CM-XXXXXXXX"
                         className="flex-1 bg-white/5 border border-white/10 focus:border-yellow-400 py-2.5 px-3 text-sm text-white placeholder:text-white/20 outline-none transition-all"
@@ -641,9 +650,7 @@ export default function CartPage() {
                         {giftCardLoading ? "..." : t("apply")}
                       </button>
                     </div>
-                    {giftCardError && (
-                      <p className="text-red-400 text-[10px] font-bold mt-1">{giftCardError}</p>
-                    )}
+                    {giftCardError && <p className="text-red-400 text-[10px] font-bold mt-1">{giftCardError}</p>}
                   </>
                 )}
               </div>
@@ -656,11 +663,7 @@ export default function CartPage() {
                 </span>
               </div>
 
-              {error && (
-                <p className="text-red-400 text-xs font-bold text-center mb-2">
-                  {error}
-                </p>
-              )}
+              {error && <p className="text-red-400 text-xs font-bold text-center mb-2">{error}</p>}
 
               <button
                 disabled={submitting}
@@ -695,14 +698,16 @@ export default function CartPage() {
                           size: v.size,
                         }));
                       }
-                      return [{
-                        name: item.name,
-                        quantity: item.quantity,
-                        image: item.image,
-                        price: unitPrice,
-                        color: item.selectedColor,
-                        size: item.selectedSize,
-                      }];
+                      return [
+                        {
+                          name: item.name,
+                          quantity: item.quantity,
+                          image: item.image,
+                          price: unitPrice,
+                          color: item.selectedColor,
+                          size: item.selectedSize,
+                        },
+                      ];
                     });
 
                     const res = await apiFetch("/api/user/orders", {
