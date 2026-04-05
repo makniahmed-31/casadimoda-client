@@ -666,7 +666,18 @@
     "removeConfirm": "Remove this item from the boutique registry?",
     "failedToSave": "Failed to save product",
     "changeImage": "Change",
-    "addImage": "Image"
+    "addImage": "Image",
+    "themeSettings": "Theme & Appearance",
+    "themeSettingsSubtitle": "Customize your boutique's visual identity",
+    "currentTheme": "Active Theme",
+    "selectTheme": "Select a Theme",
+    "applyTheme": "Apply Theme",
+    "activeTheme": "Active",
+    "themeApplied": "Theme Applied",
+    "themeHowItWorks": "How does it work?",
+    "themeHowItWorksDesc": "Each theme injects custom CSS variables across the entire site. All buttons, product cards and components update instantly. Add new themes by editing public/themes.json only — no component code changes needed.",
+    "themeTokens": "Active Theme Tokens",
+    "themeTokensDesc": "CSS variables injected into :root"
   },
   "footer": {
     "allRightsReserved": "All rights reserved. Casa Di Moda © 2025.",

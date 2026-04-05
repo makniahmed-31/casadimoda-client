@@ -1,0 +1,229 @@
+{
+  "themes": [
+    {
+      "id": "dark-luxe",
+      "name": "Dark Luxe",
+      "description": "Signature dark luxury with gold accents — the Casa di Moda classic.",
+      "preview": {
+        "bg": "#1a1a1a",
+        "accent": "#c9a96e",
+        "surface": "#f5f0eb"
+      },
+      "colors": {
+        "primary": "#1a1a1a",
+        "secondary": "#f5f0eb",
+        "accent": "#c9a96e",
+        "accentHover": "#b8924a",
+        "background": "#faf8f5",
+        "foreground": "#1a1a1a",
+        "dark": "#0d0d0d",
+        "textDark": "#1a1a1a",
+        "marigold": "#c09936",
+        "oxfordBlue": "#384457"
+      },
+      "borderRadius": {
+        "card": "0px",
+        "button": "0px",
+        "badge": "2px",
+        "input": "0px"
+      },
+      "productCard": {
+        "bgFrom": "#1c1c1c",
+        "bgTo": "#141414",
+        "border": "rgba(255,255,255,0.06)",
+        "hoverShadow": "rgba(201,169,110,0.18)",
+        "headerText": "rgba(255,255,255,0.9)",
+        "mutedText": "rgba(255,255,255,0.3)",
+        "badgeBg": "rgba(255,255,255,0.05)",
+        "badgeBorder": "rgba(255,255,255,0.1)",
+        "badgeText": "rgba(255,255,255,0.5)",
+        "imageBg": "#202020"
+      },
+      "button": {
+        "primaryBg": "#c9a96e",
+        "primaryText": "#1a1a1a",
+        "primaryBorder": "transparent",
+        "primaryHoverBg": "#b8924a",
+        "secondaryBg": "rgba(255,255,255,0.05)",
+        "secondaryText": "#ffffff",
+        "secondaryBorder": "rgba(255,255,255,0.1)",
+        "secondaryHoverBorder": "rgba(201,169,110,0.5)"
+      },
+      "card": {
+        "bg": "rgba(0,0,0,0.4)",
+        "border": "rgba(255,255,255,0.1)",
+        "hoverBorder": "rgba(201,169,110,0.3)",
+        "text": "#ffffff",
+        "mutedText": "rgba(255,255,255,0.6)"
+      },
+      "input": {
+        "bg": "rgba(255,255,255,0.05)",
+        "border": "rgba(255,255,255,0.1)",
+        "focusBorder": "#c9a96e",
+        "text": "#ffffff",
+        "placeholder": "rgba(255,255,255,0.3)"
+      },
+      "typography": {
+        "fontSans": "var(--font-geist-sans), ui-sans-serif, system-ui",
+        "fontSerif": "var(--font-playfair), 'Playfair Display', Georgia, serif",
+        "fontMono": "var(--font-geist-mono), ui-monospace, SFMono-Regular",
+        "headingWeight": "900",
+        "bodyWeight": "400"
+      },
+      "scrollbar": {
+        "thumb": "#d4d0cc",
+        "thumbHover": "#c9a96e"
+      }
+    },
+    {
+      "id": "ivory-rose",
+      "name": "Ivory Rose",
+      "description": "Soft ivory tones with blush rose accents — feminine and refined.",
+      "preview": {
+        "bg": "#fdf6f0",
+        "accent": "#c97b8a",
+        "surface": "#f9ede8"
+      },
+      "colors": {
+        "primary": "#2d1b1e",
+        "secondary": "#f9ede8",
+        "accent": "#c97b8a",
+        "accentHover": "#b5606f",
+        "background": "#fdf6f0",
+        "foreground": "#2d1b1e",
+        "dark": "#1a0d10",
+        "textDark": "#2d1b1e",
+        "marigold": "#c97b8a",
+        "oxfordBlue": "#4a2d35"
+      },
+      "borderRadius": {
+        "card": "12px",
+        "button": "8px",
+        "badge": "9999px",
+        "input": "8px"
+      },
+      "productCard": {
+        "bgFrom": "#fff5f7",
+        "bgTo": "#fdeef1",
+        "border": "rgba(201,123,138,0.14)",
+        "hoverShadow": "rgba(201,123,138,0.22)",
+        "headerText": "#2d1b1e",
+        "mutedText": "rgba(45,27,30,0.45)",
+        "badgeBg": "rgba(201,123,138,0.07)",
+        "badgeBorder": "rgba(201,123,138,0.2)",
+        "badgeText": "rgba(45,27,30,0.6)",
+        "imageBg": "#fef2f4"
+      },
+      "button": {
+        "primaryBg": "#c97b8a",
+        "primaryText": "#ffffff",
+        "primaryBorder": "transparent",
+        "primaryHoverBg": "#b5606f",
+        "secondaryBg": "rgba(201,123,138,0.06)",
+        "secondaryText": "#2d1b1e",
+        "secondaryBorder": "rgba(201,123,138,0.2)",
+        "secondaryHoverBorder": "rgba(201,123,138,0.5)"
+      },
+      "card": {
+        "bg": "rgba(253,246,240,0.8)",
+        "border": "rgba(201,123,138,0.15)",
+        "hoverBorder": "rgba(201,123,138,0.4)",
+        "text": "#2d1b1e",
+        "mutedText": "rgba(45,27,30,0.55)"
+      },
+      "input": {
+        "bg": "rgba(201,123,138,0.05)",
+        "border": "rgba(201,123,138,0.2)",
+        "focusBorder": "#c97b8a",
+        "text": "#2d1b1e",
+        "placeholder": "rgba(45,27,30,0.35)"
+      },
+      "typography": {
+        "fontSans": "var(--font-geist-sans), ui-sans-serif, system-ui",
+        "fontSerif": "var(--font-playfair), 'Playfair Display', Georgia, serif",
+        "fontMono": "var(--font-geist-mono), ui-monospace, SFMono-Regular",
+        "headingWeight": "900",
+        "bodyWeight": "400"
+      },
+      "scrollbar": {
+        "thumb": "#e8c8ce",
+        "thumbHover": "#c97b8a"
+      }
+    },
+    {
+      "id": "ocean-depth",
+      "name": "Ocean Depth",
+      "description": "Deep navy blues with sapphire accents — bold and sophisticated.",
+      "preview": {
+        "bg": "#0a1628",
+        "accent": "#4fa3c7",
+        "surface": "#e8f4fd"
+      },
+      "colors": {
+        "primary": "#0a1628",
+        "secondary": "#e8f4fd",
+        "accent": "#4fa3c7",
+        "accentHover": "#3a8aab",
+        "background": "#f5fafd",
+        "foreground": "#0a1628",
+        "dark": "#060e1a",
+        "textDark": "#0a1628",
+        "marigold": "#4fa3c7",
+        "oxfordBlue": "#1e3a5f"
+      },
+      "borderRadius": {
+        "card": "4px",
+        "button": "4px",
+        "badge": "4px",
+        "input": "4px"
+      },
+      "productCard": {
+        "bgFrom": "#0f1f38",
+        "bgTo": "#081425",
+        "border": "rgba(79,163,199,0.12)",
+        "hoverShadow": "rgba(79,163,199,0.2)",
+        "headerText": "rgba(255,255,255,0.9)",
+        "mutedText": "rgba(255,255,255,0.3)",
+        "badgeBg": "rgba(79,163,199,0.08)",
+        "badgeBorder": "rgba(79,163,199,0.2)",
+        "badgeText": "rgba(255,255,255,0.5)",
+        "imageBg": "#0d1a2e"
+      },
+      "button": {
+        "primaryBg": "#4fa3c7",
+        "primaryText": "#ffffff",
+        "primaryBorder": "transparent",
+        "primaryHoverBg": "#3a8aab",
+        "secondaryBg": "rgba(79,163,199,0.07)",
+        "secondaryText": "#0a1628",
+        "secondaryBorder": "rgba(79,163,199,0.2)",
+        "secondaryHoverBorder": "rgba(79,163,199,0.5)"
+      },
+      "card": {
+        "bg": "rgba(10,22,40,0.4)",
+        "border": "rgba(79,163,199,0.15)",
+        "hoverBorder": "rgba(79,163,199,0.35)",
+        "text": "#ffffff",
+        "mutedText": "rgba(255,255,255,0.6)"
+      },
+      "input": {
+        "bg": "rgba(79,163,199,0.06)",
+        "border": "rgba(79,163,199,0.2)",
+        "focusBorder": "#4fa3c7",
+        "text": "#0a1628",
+        "placeholder": "rgba(10,22,40,0.35)"
+      },
+      "typography": {
+        "fontSans": "var(--font-geist-sans), ui-sans-serif, system-ui",
+        "fontSerif": "var(--font-playfair), 'Playfair Display', Georgia, serif",
+        "fontMono": "var(--font-geist-mono), ui-monospace, SFMono-Regular",
+        "headingWeight": "900",
+        "bodyWeight": "400"
+      },
+      "scrollbar": {
+        "thumb": "#b8d8e8",
+        "thumbHover": "#4fa3c7"
+      }
+    }
+  ]
+}

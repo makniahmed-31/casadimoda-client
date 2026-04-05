@@ -230,14 +230,14 @@ export default function ProductItem({ product }: ProductItemProps) {
 
   return (
     <div
-      className="
-        group relative flex flex-col overflow-hidden
-        bg-gradient-to-b from-[#1c1c1c] to-[#141414]
-        border border-white/[0.06]
-        shadow-lg
-        transition-all duration-300
-        hover:-translate-y-2 hover:shadow-2xl
-      "
+      className="group relative flex flex-col overflow-hidden shadow-lg transition-all duration-300 hover:-translate-y-2"
+      style={{
+        background: "linear-gradient(to bottom, var(--pc-bg-from), var(--pc-bg-to))",
+        border: "1px solid var(--pc-border)",
+        borderRadius: "var(--radius-card)",
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        ["--tw-shadow-color" as any]: "var(--pc-hover-shadow)",
+      }}
     >
       {/* Header */}
       <div className="flex items-center justify-between px-4 py-3 relative">
@@ -278,7 +278,12 @@ export default function ProductItem({ product }: ProductItemProps) {
           )}
         </div>
 
-        <span className="font-serif text-[10px] tracking-[0.25em] text-accent/70 uppercase">{tc("brand")}</span>
+        <span
+          className="font-serif text-[10px] tracking-[0.25em] uppercase"
+          style={{ color: "var(--color-accent)", opacity: 0.7 }}
+        >
+          {tc("brand")}
+        </span>
 
         {isCustomer && (
           <button
@@ -296,11 +301,21 @@ export default function ProductItem({ product }: ProductItemProps) {
         )}
       </div>
 
-      {/* Gold line */}
-      <div className="h-px bg-gradient-to-r from-transparent via-accent/60 to-transparent" />
+      {/* Accent separator line */}
+      <div
+        className="h-px"
+        style={{
+          background: "linear-gradient(to right, transparent, var(--color-accent), transparent)",
+          opacity: 0.6,
+        }}
+      />
 
       {/* Image */}
-      <Link href={`/product/${product.slug}`} className="relative aspect-square bg-[#202020] overflow-hidden">
+      <Link
+        href={`/product/${product.slug}`}
+        className="relative aspect-square overflow-hidden"
+        style={{ background: "var(--pc-image-bg)" }}
+      >
         {product.isFeatured && (
           <span className="absolute top-3 left-3 z-10 bg-accent px-3 py-1 text-[9px] font-bold uppercase tracking-widest text-white shadow">
             {t("newBadge")}
@@ -323,22 +338,39 @@ export default function ProductItem({ product }: ProductItemProps) {
       <div className="flex flex-col flex-grow px-4 py-4 text-center">
         <Link href={`/product/${product.slug}`} className="flex-grow">
           {/* Title */}
-          <h3 className="text-white font-semibold text-sm tracking-wide line-clamp-2 mb-1">{product.name}</h3>
+          <h3
+            className="font-semibold text-sm tracking-wide line-clamp-2 mb-1"
+            style={{ color: "var(--pc-header-text)" }}
+          >
+            {product.name}
+          </h3>
 
-          <p className="text-white/30 text-xs uppercase tracking-widest mb-3">{product.brand}</p>
+          <p className="text-xs uppercase tracking-widest mb-3" style={{ color: "var(--pc-muted-text)" }}>
+            {product.brand}
+          </p>
 
           {/* Price */}
           <div className="mb-3">
             {hasDiscount ? (
               <div className="flex items-center justify-center gap-2">
-                <span className="text-xl font-bold text-white">{displayPrice.toLocaleString("en-US")}</span>
-                <span className="text-xs text-white/40">{tc("currency")}</span>
-                <span className="text-xs line-through text-white/25">{product.price.toLocaleString("en-US")}</span>
+                <span className="text-xl font-bold" style={{ color: "var(--pc-header-text)" }}>
+                  {displayPrice.toLocaleString("en-US")}
+                </span>
+                <span className="text-xs" style={{ color: "var(--pc-muted-text)" }}>
+                  {tc("currency")}
+                </span>
+                <span className="text-xs line-through" style={{ color: "var(--pc-muted-text)", opacity: 0.6 }}>
+                  {product.price.toLocaleString("en-US")}
+                </span>
               </div>
             ) : (
               <div className="flex items-center justify-center gap-1">
-                <span className="text-xl font-bold text-white">{displayPrice.toLocaleString("en-US")}</span>
-                <span className="text-xs text-white/40">{tc("currency")}</span>
+                <span className="text-xl font-bold" style={{ color: "var(--pc-header-text)" }}>
+                  {displayPrice.toLocaleString("en-US")}
+                </span>
+                <span className="text-xs" style={{ color: "var(--pc-muted-text)" }}>
+                  {tc("currency")}
+                </span>
               </div>
             )}
           </div>
@@ -383,7 +415,13 @@ export default function ProductItem({ product }: ProductItemProps) {
             {product.sizes.slice(0, 4).map((size) => (
               <span
                 key={size}
-                className="px-2 py-1 text-[10px] bg-white/5 rounded-md border border-white/10 text-white/50 font-semibold"
+                className="px-2 py-1 text-[10px] font-semibold"
+                style={{
+                  background: "var(--pc-badge-bg)",
+                  border: "1px solid var(--pc-badge-border)",
+                  color: "var(--pc-badge-text)",
+                  borderRadius: "var(--radius-badge)",
+                }}
               >
                 {size}
               </span>
@@ -396,7 +434,12 @@ export default function ProductItem({ product }: ProductItemProps) {
           (product.parentCategory === "gros" ? (
             <Link
               href={`/product/${product.slug}`}
-              className="cursor-pointer w-full py-2 text-xs font-bold uppercase tracking-[0.2em] transition-all duration-300 flex items-center justify-center gap-2 bg-accent text-white hover:bg-accent/90 hover:scale-[1.02]"
+              className="cursor-pointer w-full py-2 text-xs font-bold uppercase tracking-[0.2em] transition-all duration-300 flex items-center justify-center gap-2 hover:scale-[1.02]"
+              style={{
+                background: "var(--btn-primary-bg)",
+                color: "var(--btn-primary-text)",
+                borderRadius: "var(--radius-button)",
+              }}
             >
               <ShoppingBag className="w-3.5 h-3.5" />
               {t("configureOrder")}
@@ -404,11 +447,16 @@ export default function ProductItem({ product }: ProductItemProps) {
           ) : (
             <button
               onClick={addToCartHandler}
-              className={`cursor-pointer w-full py-2 text-xs font-bold uppercase tracking-[0.2em] transition-all duration-300 flex items-center justify-center gap-2 ${
+              className="cursor-pointer w-full py-2 text-xs font-bold uppercase tracking-[0.2em] transition-all duration-300 flex items-center justify-center gap-2 hover:scale-[1.02]"
+              style={
                 addedToCart
-                  ? "bg-green-600 text-white scale-[1.02]"
-                  : "bg-accent text-white hover:bg-accent/90 hover:scale-[1.02]"
-              }`}
+                  ? { background: "#16a34a", color: "#ffffff", borderRadius: "var(--radius-button)" }
+                  : {
+                      background: "var(--btn-primary-bg)",
+                      color: "var(--btn-primary-text)",
+                      borderRadius: "var(--radius-button)",
+                    }
+              }
             >
               <ShoppingBag className="w-3.5 h-3.5" />
               {t("addToCart")}

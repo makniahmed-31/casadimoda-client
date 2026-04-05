@@ -666,7 +666,18 @@
     "removeConfirm": "هل تريد حذف هذا المنتج من السجل؟",
     "failedToSave": "فشل في حفظ المنتج",
     "changeImage": "تغيير",
-    "addImage": "صورة"
+    "addImage": "صورة",
+    "themeSettings": "الثيم والمظهر",
+    "themeSettingsSubtitle": "خصّص الهوية البصرية لمتجرك",
+    "currentTheme": "الثيم النشط",
+    "selectTheme": "اختر ثيمًا",
+    "applyTheme": "تطبيق الثيم",
+    "activeTheme": "نشط",
+    "themeApplied": "تم تطبيق الثيم",
+    "themeHowItWorks": "كيف يعمل؟",
+    "themeHowItWorksDesc": "يُدخل كل ثيم متغيرات CSS مخصصة عبر الموقع بأكمله. تتحدث الأزرار وبطاقات المنتجات وجميع المكونات فورًا. أضف ثيمات جديدة بتعديل public/themes.json فقط.",
+    "themeTokens": "متغيرات الثيم الحالي",
+    "themeTokensDesc": "متغيرات CSS المُحقنة في :root"
   },
   "footer": {
     "allRightsReserved": "جميع الحقوق محفوظة. كازا دي مودا © 2025.",

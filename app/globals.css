@@ -1,7 +1,7 @@
 @import "tailwindcss";
 
 @theme {
-  /* Dark Luxe Design Tokens */
+  /* Dark Luxe Design Tokens — defaults overridden at runtime by ThemeContext */
   --color-primary: #1a1a1a;
   --color-secondary: #f5f0eb;
   --color-accent: #c9a96e;
@@ -22,6 +22,39 @@
   --background: #faf8f5;
   --foreground: #1a1a1a;
   color-scheme: light;
+
+  /* Scrollbar tokens — overridden per theme by ThemeContext */
+  --scrollbar-thumb: #d4d0cc;
+  --scrollbar-thumb-hover: #c9a96e;
+
+  /* Component tokens — overridden per theme by ThemeContext */
+  --btn-primary-bg: #c9a96e;
+  --btn-primary-text: #1a1a1a;
+  --btn-primary-hover-bg: #b8924a;
+  --card-bg: rgba(0, 0, 0, 0.4);
+  --card-border: rgba(255, 255, 255, 0.1);
+  --card-hover-border: rgba(201, 169, 110, 0.3);
+  --input-bg: rgba(255, 255, 255, 0.05);
+  --input-border: rgba(255, 255, 255, 0.1);
+  --input-focus-border: #c9a96e;
+
+  /* Border radius tokens — overridden per theme + per admin override */
+  --radius-card: 0px;
+  --radius-button: 0px;
+  --radius-badge: 2px;
+  --radius-input: 0px;
+
+  /* Product card tokens — overridden per theme by ThemeContext */
+  --pc-bg-from: #1c1c1c;
+  --pc-bg-to: #141414;
+  --pc-border: rgba(255, 255, 255, 0.06);
+  --pc-hover-shadow: rgba(201, 169, 110, 0.18);
+  --pc-header-text: rgba(255, 255, 255, 0.9);
+  --pc-muted-text: rgba(255, 255, 255, 0.3);
+  --pc-badge-bg: rgba(255, 255, 255, 0.05);
+  --pc-badge-border: rgba(255, 255, 255, 0.1);
+  --pc-badge-text: rgba(255, 255, 255, 0.5);
+  --pc-image-bg: #202020;
 }
 
 @layer base {
@@ -52,11 +85,10 @@
     background: transparent;
   }
   ::-webkit-scrollbar-thumb {
-    background: #d4d0cc;
+    background: var(--scrollbar-thumb);
     border-radius: 10px;
   }
   ::-webkit-scrollbar-thumb:hover {
-    background: var(--color-accent);
+    background: var(--scrollbar-thumb-hover);
   }
-
 }
