@@ -43,6 +43,7 @@ export default function SupplierProductsTable({
 
   const { register, handleSubmit, reset, setValue, watch } = useForm<Product>();
   const selectedCategory = watch("category");
+  const watchedImage = watch("image");
 
   useEffect(() => {
     const fetchStatus = async () => {
@@ -743,6 +744,27 @@ export default function SupplierProductsTable({
                   <div className="space-y-5">
                     <div className="space-y-2">
                       <label className="text-[9px] font-black uppercase tracking-widest text-white/30">
+                        Primary Image
+                      </label>
+                      <div className="flex items-center gap-3">
+                        {watchedImage && (
+                          // eslint-disable-next-line @next/next/no-img-element
+                          <img
+                            src={watchedImage}
+                            alt="preview"
+                            className="w-10 h-12 object-cover border border-white/10 shrink-0"
+                          />
+                        )}
+                        <ImageUpload
+                          onSuccess={(url) => setValue("image", url)}
+                          label={watchedImage ? "Change Image" : "Upload Image"}
+                          buttonClassName="text-[9px] font-black uppercase tracking-widest text-accent border border-accent/30 px-3 py-2 hover:bg-accent/10 transition-all cursor-pointer shrink-0"
+                        />
+                      </div>
+                    </div>
+
+                    <div className="space-y-2">
+                      <label className="text-[9px] font-black uppercase tracking-widest text-white/30">
                         Description *
                       </label>
                       <textarea
@@ -771,6 +793,35 @@ export default function SupplierProductsTable({
                           {...register("dimensions")}
                           className="w-full bg-white/5 border border-white/10 focus:border-accent p-3 text-sm text-white placeholder:text-white/20 outline-none transition-all"
                           placeholder="e.g. 20x30x10 cm"
+                        />
+                      </div>
+                    </div>
+
+                    <div className="grid grid-cols-3 gap-4">
+                      <div className="space-y-2">
+                        <label className="text-[9px] font-black uppercase tracking-widest text-white/30">Weight</label>
+                        <input
+                          {...register("weight")}
+                          className="w-full bg-white/5 border border-white/10 focus:border-accent p-3 text-sm text-white placeholder:text-white/20 outline-none transition-all"
+                          placeholder="e.g. 1.5 kg"
+                        />
+                      </div>
+                      <div className="space-y-2">
+                        <label className="text-[9px] font-black uppercase tracking-widest text-white/30">CBM</label>
+                        <input
+                          type="number"
+                          step="0.01"
+                          {...register("cbm", { valueAsNumber: true })}
+                          className="w-full bg-white/5 border border-white/10 focus:border-accent p-3 text-sm text-white outline-none transition-all"
+                          placeholder="e.g. 0.5"
+                        />
+                      </div>
+                      <div className="space-y-2">
+                        <label className="text-[9px] font-black uppercase tracking-widest text-white/30">HS Code</label>
+                        <input
+                          {...register("hsCode")}
+                          className="w-full bg-white/5 border border-white/10 focus:border-accent p-3 text-sm text-white placeholder:text-white/20 outline-none transition-all"
+                          placeholder="e.g. 6204.61"
                         />
                       </div>
                     </div>

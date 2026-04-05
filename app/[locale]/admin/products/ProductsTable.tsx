@@ -1,15 +1,15 @@
 "use client";
 
-import { useEffect, useState } from "react";
-import Image from "next/image";
-import { Plus, Search, Filter, Edit, Trash2, Package, X } from "lucide-react";
-import { useForm } from "react-hook-form";
-import { useSearchParams, useRouter } from "next/navigation";
-import { useTranslations } from "next-intl";
-import { Product, SubCategory, Category, Brand } from "@/types";
-import Pagination from "@/components/Pagination";
-import { apiFetch } from "@/utils/api";
 import ImageUpload from "@/components/ImageUpload";
+import Pagination from "@/components/Pagination";
+import { Brand, Category, Product, SubCategory } from "@/types";
+import { apiFetch } from "@/utils/api";
+import { Edit, Filter, Package, Plus, Search, Trash2, X } from "lucide-react";
+import { useTranslations } from "next-intl";
+import Image from "next/image";
+import { useRouter, useSearchParams } from "next/navigation";
+import { useEffect, useState } from "react";
+import { useForm } from "react-hook-form";
 
 export default function ProductsTable({
   initialProducts,
@@ -33,12 +33,11 @@ export default function ProductsTable({
   const [sizeInput, setSizeInput] = useState("");
   const [colors, setColors] = useState<string[]>([]);
   const [colorImages, setColorImages] = useState<Record<string, string>>({});
-  const [dbColors, setDbColors] = useState<
-    { _id: string; name: string; hex: string }[]
-  >([]);
+  const [dbColors, setDbColors] = useState<{ _id: string; name: string; hex: string }[]>([]);
   const [selectedDbColor, setSelectedDbColor] = useState("");
   const { register, handleSubmit, reset, setValue, watch } = useForm<Product>();
   const selectedCategory = watch("category");
+  const watchedImage = watch("image");
   const searchParams = useSearchParams();
   const router = useRouter();
 
@@ -156,10 +155,7 @@ export default function ProductsTable({
       }));
 
     // First color image is the primary product image
-    const primaryImage =
-      colors.length > 0 && colorImages[colors[0]]
-        ? colorImages[colors[0]]
-        : data.image || "";
+    const primaryImage = colors.length > 0 && colorImages[colors[0]] ? colorImages[colors[0]] : data.image || "";
 
     const body = editingProduct
       ? {
@@ -233,10 +229,7 @@ export default function ProductsTable({
         {/* Filters */}
         <div className="flex flex-col md:flex-row gap-4 mb-8">
           <div className="relative flex-grow">
-            <Search
-              className="absolute left-4 top-1/2 -translate-y-1/2 text-text-dark/20"
-              size={18}
-            />
+            <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-text-dark/20" size={18} />
             <input
               className="w-full bg-secondary border-none  py-4 pl-12 pr-4 outline-none font-bold text-primary placeholder:text-gray-300"
               placeholder={t("searchRegistry")}
@@ -257,15 +250,11 @@ export default function ProductsTable({
                 <th className="pb-6 text-[11px] font-black uppercase tracking-widest text-primary">
                   {t("productDetails")}
                 </th>
-                <th className="pb-6 text-[11px] font-black uppercase tracking-widest text-primary">
-                  {t("category")}
-                </th>
+                <th className="pb-6 text-[11px] font-black uppercase tracking-widest text-primary">{t("category")}</th>
                 <th className="pb-6 text-[11px] font-black uppercase tracking-widest text-primary">
                   {t("subcategory")}
                 </th>
-                <th className="pb-6 text-[11px] font-black uppercase tracking-widest text-primary">
-                  {t("inventory")}
-                </th>
+                <th className="pb-6 text-[11px] font-black uppercase tracking-widest text-primary">{t("inventory")}</th>
                 <th className="pb-6 text-[11px] font-black uppercase tracking-widest text-primary">
                   {t("retailValue")}
                 </th>
@@ -276,10 +265,7 @@ export default function ProductsTable({
             </thead>
             <tbody className="divide-y divide-gray-50">
               {initialProducts.map((product) => (
-                <tr
-                  key={product._id}
-                  className="group hover:bg-secondary/10 transition-colors"
-                >
+                <tr key={product._id} className="group hover:bg-secondary/10 transition-colors">
                   <td className="py-6">
                     <div className="flex items-center gap-4">
                       <div className="relative w-16 h-20  overflow-hidden bg-secondary flex-shrink-0">
@@ -292,9 +278,7 @@ export default function ProductsTable({
                         />
                       </div>
                       <div>
-                        <p className="font-black text-primary text-sm leading-tight mb-1">
-                          {product.name}
-                        </p>
+                        <p className="font-black text-primary text-sm leading-tight mb-1">{product.name}</p>
                         <p className="text-[10px] font-bold text-text-dark/30 uppercase tracking-widest">
                           {product.brand}
                         </p>
@@ -314,11 +298,7 @@ export default function ProductsTable({
                   <td className="py-6">
                     <div className="flex items-center gap-2">
                       <div
-                        className={`w-2 h-2 rounded-full ${
-                          product.countInStock > 0
-                            ? "bg-green-500"
-                            : "bg-red-500"
-                        }`}
+                        className={`w-2 h-2 rounded-full ${product.countInStock > 0 ? "bg-green-500" : "bg-red-500"}`}
                       />
                       <span className="text-xs font-black text-primary">
                         {product.countInStock} {t("units")}
@@ -329,22 +309,12 @@ export default function ProductsTable({
                     <div className="flex flex-col">
                       <span
                         suppressHydrationWarning
-                        className={`text-lg font-black ${
-                          product.discountPrice > 0
-                            ? "text-red-500"
-                            : "text-primary"
-                        }`}
+                        className={`text-lg font-black ${product.discountPrice > 0 ? "text-red-500" : "text-primary"}`}
                       >
-                        $
-                        {(
-                          product.discountPrice || product.price
-                        ).toLocaleString("en-US")}
+                        ${(product.discountPrice || product.price).toLocaleString("en-US")}
                       </span>
                       {product.discountPrice > 0 && (
-                        <span
-                          suppressHydrationWarning
-                          className="text-[10px] font-bold text-text-dark/30 line-through"
-                        >
+                        <span suppressHydrationWarning className="text-[10px] font-bold text-text-dark/30 line-through">
                           ${product.price.toLocaleString("en-US")}
                         </span>
                       )}
@@ -395,9 +365,7 @@ export default function ProductsTable({
           <div className="bg-white w-full max-w-4xl  shadow-2xl animate-in zoom-in duration-300 max-h-[90vh] flex flex-col overflow-hidden">
             <div className="p-10 pb-4 flex justify-between items-center bg-white z-10">
               <h2 className="text-3xl font-black text-primary tracking-tight">
-                {editingProduct
-                  ? t("refineMasterpiece")
-                  : t("enlistNewCreation")}
+                {editingProduct ? t("refineMasterpiece") : t("enlistNewCreation")}
               </h2>
               <button
                 onClick={() => setShowModal(false)}
@@ -407,10 +375,7 @@ export default function ProductsTable({
               </button>
             </div>
 
-            <form
-              onSubmit={handleSubmit(onSubmit)}
-              className="flex flex-col flex-grow overflow-hidden"
-            >
+            <form onSubmit={handleSubmit(onSubmit)} className="flex flex-col flex-grow overflow-hidden">
               <div className="flex-grow overflow-y-auto p-10 pt-4 space-y-4 md:space-y-8">
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
                   {/* Left Side: General Info */}
@@ -453,11 +418,7 @@ export default function ProductsTable({
                         >
                           <option value="">{t("selectSubcategory")}</option>
                           {subCategories
-                            .filter(
-                              (sub) =>
-                                !selectedCategory ||
-                                sub.parentCategory === selectedCategory,
-                            )
+                            .filter((sub) => !selectedCategory || sub.parentCategory === selectedCategory)
                             .map((sub) => (
                               <option key={sub._id} value={sub.name}>
                                 {sub.name}
@@ -508,10 +469,7 @@ export default function ProductsTable({
                           onKeyDown={(e) => {
                             if (e.key === "Enter") {
                               e.preventDefault();
-                              if (
-                                sizeInput.trim() &&
-                                !sizes.includes(sizeInput.trim())
-                              ) {
+                              if (sizeInput.trim() && !sizes.includes(sizeInput.trim())) {
                                 setSizes([...sizes, sizeInput.trim()]);
                                 setSizeInput("");
                               }
@@ -523,10 +481,7 @@ export default function ProductsTable({
                         <button
                           type="button"
                           onClick={() => {
-                            if (
-                              sizeInput.trim() &&
-                              !sizes.includes(sizeInput.trim())
-                            ) {
+                            if (sizeInput.trim() && !sizes.includes(sizeInput.trim())) {
                               setSizes([...sizes, sizeInput.trim()]);
                               setSizeInput("");
                             }
@@ -546,9 +501,7 @@ export default function ProductsTable({
                               {size}
                               <button
                                 type="button"
-                                onClick={() =>
-                                  setSizes(sizes.filter((s) => s !== size))
-                                }
+                                onClick={() => setSizes(sizes.filter((s) => s !== size))}
                                 className="text-text-dark/30 hover:text-red-500 cursor-pointer"
                               >
                                 <X size={12} />
@@ -581,10 +534,7 @@ export default function ProductsTable({
                         <button
                           type="button"
                           onClick={() => {
-                            if (
-                              selectedDbColor &&
-                              !colors.includes(selectedDbColor)
-                            ) {
+                            if (selectedDbColor && !colors.includes(selectedDbColor)) {
                               setColors([...colors, selectedDbColor]);
                               setSelectedDbColor("");
                             }
@@ -597,21 +547,12 @@ export default function ProductsTable({
                       {colors.length > 0 && (
                         <div className="space-y-2 mt-2">
                           {colors.map((color) => (
-                            <div
-                              key={color}
-                              className="flex items-center gap-2 bg-secondary px-3 py-2"
-                            >
-                              <span className="flex-1 text-primary font-bold text-xs">
-                                {color}
-                              </span>
+                            <div key={color} className="flex items-center gap-2 bg-secondary px-3 py-2">
+                              <span className="flex-1 text-primary font-bold text-xs">{color}</span>
                               {colorImages[color] ? (
                                 <div className="relative w-10 h-10 overflow-hidden bg-white border border-gray-100 flex-shrink-0">
                                   {/* eslint-disable-next-line @next/next/no-img-element */}
-                                  <img
-                                    src={colorImages[color]}
-                                    alt={color}
-                                    className="w-full h-full object-cover"
-                                  />
+                                  <img src={colorImages[color]} alt={color} className="w-full h-full object-cover" />
                                 </div>
                               ) : null}
                               <ImageUpload
@@ -685,6 +626,27 @@ export default function ProductsTable({
                   <div className="space-y-6">
                     <div className="space-y-2">
                       <label className="text-[11px] font-black uppercase tracking-widest text-primary ml-2">
+                        {t("primaryImage")}
+                      </label>
+                      <div className="flex items-center gap-3">
+                        {watchedImage && (
+                          // eslint-disable-next-line @next/next/no-img-element
+                          <img
+                            src={watchedImage}
+                            alt="preview"
+                            className="w-14 h-18 object-cover bg-secondary flex-shrink-0"
+                          />
+                        )}
+                        <ImageUpload
+                          onSuccess={(url) => setValue("image", url)}
+                          label={watchedImage ? t("changeImage") : t("addImage")}
+                          buttonClassName="text-[9px] font-black uppercase tracking-widest text-accent border border-accent/30 px-4 py-3 hover:bg-accent/10 transition-all cursor-pointer"
+                        />
+                      </div>
+                    </div>
+
+                    <div className="space-y-2">
+                      <label className="text-[11px] font-black uppercase tracking-widest text-primary ml-2">
                         {t("narrativeDescription")}
                       </label>
                       <textarea
@@ -713,6 +675,41 @@ export default function ProductsTable({
                           {...register("dimensions")}
                           className="w-full bg-secondary border-none  p-4 outline-none font-bold text-primary"
                           placeholder={t("dimensionsPlaceholder")}
+                        />
+                      </div>
+                    </div>
+
+                    <div className="grid grid-cols-3 gap-4">
+                      <div className="space-y-2">
+                        <label className="text-[11px] font-black uppercase tracking-widest text-primary ml-2">
+                          {t("weight")}
+                        </label>
+                        <input
+                          {...register("weight")}
+                          className="w-full bg-secondary border-none p-4 outline-none font-bold text-primary"
+                          placeholder={t("weightPlaceholder")}
+                        />
+                      </div>
+                      <div className="space-y-2">
+                        <label className="text-[11px] font-black uppercase tracking-widest text-primary ml-2">
+                          {t("cbm")}
+                        </label>
+                        <input
+                          type="number"
+                          step="0.01"
+                          {...register("cbm", { valueAsNumber: true })}
+                          className="w-full bg-secondary border-none p-4 outline-none font-bold text-primary"
+                          placeholder={t("cbmPlaceholder")}
+                        />
+                      </div>
+                      <div className="space-y-2">
+                        <label className="text-[11px] font-black uppercase tracking-widest text-primary ml-2">
+                          {t("hsCode")}
+                        </label>
+                        <input
+                          {...register("hsCode")}
+                          className="w-full bg-secondary border-none p-4 outline-none font-bold text-primary"
+                          placeholder={t("hsCodePlaceholder")}
                         />
                       </div>
                     </div>
