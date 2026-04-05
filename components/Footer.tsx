@@ -1,5 +1,4 @@
 import { useTranslations } from "next-intl";
-import { Link } from "@/i18n/routing";
 import Logo from "./Logo";
 
 export default function Footer() {
@@ -11,7 +10,7 @@ export default function Footer() {
           <Logo />
         </div>
         <p className="text-secondary/60 text-sm font-medium tracking-wide uppercase">
-          {t("allRightsReserved")}
+          {t("allRightsReserved", { year: new Date().getFullYear() })}
         </p>
         <div className="mt-4 flex justify-center gap-6 text-xs text-accent uppercase tracking-widest font-bold">
           <a href="#" className="hover:text-white transition-colors">

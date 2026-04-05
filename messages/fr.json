@@ -688,7 +688,7 @@
     "themeTokensDesc": "Variables CSS injectées dans :root"
   },
   "footer": {
-    "allRightsReserved": "All rights reserved. Casa Di Moda © 2025.",
+    "allRightsReserved": "All rights reserved. Casa Di Moda © {year}.",
     "privacy": "Privacy",
     "terms": "Terms",
     "support": "Support"

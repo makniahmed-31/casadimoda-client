@@ -687,7 +687,7 @@
     "themeTokensDesc": "متغيرات CSS المُحقنة في :root"
   },
   "footer": {
-    "allRightsReserved": "جميع الحقوق محفوظة. كازا دي مودا © 2025.",
+    "allRightsReserved": "جميع الحقوق محفوظة. كازا دي مودا © {year}.",
     "privacy": "الخصوصية",
     "terms": "الشروط",
     "support": "الدعم"
