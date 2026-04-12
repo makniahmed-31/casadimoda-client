@@ -24,7 +24,11 @@
     "favorites": "المفضلة",
     "cart": "السلة",
     "searchPlaceholder": "بحث...",
-    "viewAllResults": "عرض جميع النتائج"
+    "viewAllResults": "عرض جميع النتائج",
+    "all": "الكل",
+    "allProducts": "جميع المنتجات",
+    "vipStore": "متجر VIP",
+    "sellOnCasa": "بِع على كاسا دي مودا"
   },
   "sidebar": {
     "hello": "مرحباً، سجّل الدخول.",
@@ -621,7 +625,6 @@
     "enlistNewItem": "إضافة منتج جديد",
     "searchRegistry": "بحث في السجل...",
     "filters": "تصفية",
-    "productDetails": "تفاصيل المنتج",
     "category": "الفئة",
     "subcategory": "الفئة الفرعية",
     "brand": "العلامة التجارية",
@@ -642,7 +645,6 @@
     "gros": "جملة",
     "sizes": "المقاسات",
     "sizePlaceholder": "مثال: S, M, L, XL",
-    "colors": "الألوان",
     "selectColor": "— اختر لوناً —",
     "originalPrice": "السعر الأصلي",
     "discountPrice": "السعر المخفّض",

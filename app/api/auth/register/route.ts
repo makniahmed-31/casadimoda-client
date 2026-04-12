@@ -13,7 +13,16 @@ export async function POST(request: NextRequest) {
     });
 
     const data = await res.json();
-    return NextResponse.json(data, { status: res.status });
+    const response = NextResponse.json(data, { status: res.status });
+
+    // Forward the Express JWT cookie to the browser so authenticated
+    // API calls (e.g. /api/supplier/register) work after registration.
+    const setCookie = res.headers.get("set-cookie");
+    if (setCookie) {
+      response.headers.set("set-cookie", setCookie);
+    }
+
+    return response;
   } catch {
     return NextResponse.json({ message: "Registration failed" }, { status: 500 });
   }

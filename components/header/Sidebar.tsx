@@ -1,8 +1,9 @@
 "use client";
 
-import { useTranslations } from "next-intl";
 import { Link } from "@/i18n/routing";
-import { ChevronRight, User, X } from "lucide-react";
+import { ChevronRight, Store, User, X } from "lucide-react";
+import { useTranslations } from "next-intl";
+
 interface SidebarProps {
   isOpen: boolean;
   onClose: () => void;
@@ -11,14 +12,9 @@ interface SidebarProps {
   categoryMap: Record<string, string[]>;
 }
 
-export default function Sidebar({
-  isOpen,
-  onClose,
-  categories,
-  brands,
-  categoryMap,
-}: SidebarProps) {
+export default function Sidebar({ isOpen, onClose, categories, brands, categoryMap }: SidebarProps) {
   const t = useTranslations("sidebar");
+  const tn = useTranslations("nav");
   return (
     <>
       {/* Overlay */}
@@ -41,14 +37,9 @@ export default function Sidebar({
             <div className="w-8 h-8 rounded-full bg-accent flex items-center justify-center text-primary">
               <User className="w-5 h-5" />
             </div>
-            <span className="text-lg font-black tracking-tight font-sans">
-              {t("hello")}
-            </span>
+            <span className="text-lg font-black tracking-tight font-sans">{t("hello")}</span>
           </div>
-          <button
-            onClick={onClose}
-            className="p-1 hover:bg-white/10 rounded-full transition-colors cursor-pointer"
-          >
+          <button onClick={onClose} className="p-1 hover:bg-white/10 rounded-full transition-colors cursor-pointer">
             <X className="w-6 h-6 text-accent" />
           </button>
         </div>
@@ -64,11 +55,7 @@ export default function Sidebar({
               {categories.map((cat) => (
                 <li key={cat} className="space-y-2">
                   <div className="text-primary font-bold text-lg hover:text-accent transition-colors cursor-pointer flex items-center justify-between group">
-                    <Link
-                      href={`/search?category=${encodeURIComponent(cat)}`}
-                      onClick={onClose}
-                      className="flex-grow"
-                    >
+                    <Link href={`/search?category=${encodeURIComponent(cat)}`} onClick={onClose} className="flex-grow">
                       <span>{cat}</span>
                     </Link>
                     <ChevronRight className="w-4 h-4 text-accent group-hover:translate-x-1 transition-transform" />
@@ -111,21 +98,32 @@ export default function Sidebar({
             </div>
           </section>
 
+          {/* Become a Supplier */}
+          <section className="pt-6 border-t border-gray-100">
+            <Link
+              href="/become-supplier"
+              onClick={onClose}
+              className="flex items-center gap-3 p-4 bg-accent/10 border border-accent/30 hover:bg-accent hover:text-white group transition-all"
+            >
+              <Store className="w-5 h-5 text-accent group-hover:text-white transition-colors" />
+              <div>
+                <p className="text-[11px] font-black uppercase tracking-widest text-accent group-hover:text-white transition-colors">
+                  {tn("becomeSupplier")}
+                </p>
+                <p className="text-[10px] text-text-dark/50 group-hover:text-white/80 transition-colors mt-0.5">
+                  {tn("sellOnCasa")}
+                </p>
+              </div>
+            </Link>
+          </section>
+
           {/* Help & Settings */}
           <section className="pt-6 border-t border-gray-100">
-            <h3 className="text-[11px] font-black uppercase tracking-[0.3em] text-accent mb-4">
-              {t("helpSettings")}
-            </h3>
+            <h3 className="text-[11px] font-black uppercase tracking-[0.3em] text-accent mb-4">{t("helpSettings")}</h3>
             <ul className="space-y-3 text-sm font-medium text-text-dark/70">
-              <li className="hover:text-primary cursor-pointer">
-                {t("yourAccount")}
-              </li>
-              <li className="hover:text-primary cursor-pointer">
-                {t("customerService")}
-              </li>
-              <li className="hover:text-primary cursor-pointer">
-                {t("signIn")}
-              </li>
+              <li className="hover:text-primary cursor-pointer">{t("yourAccount")}</li>
+              <li className="hover:text-primary cursor-pointer">{t("customerService")}</li>
+              <li className="hover:text-primary cursor-pointer">{t("signIn")}</li>
             </ul>
           </section>
         </div>

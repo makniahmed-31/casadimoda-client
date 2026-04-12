@@ -1,19 +1,12 @@
 "use client";
 
-import { useState, useEffect } from "react";
-import { useSession } from "next-auth/react";
-import { useRouter } from "next/navigation";
 import { Link } from "@/i18n/routing";
-import {
-  User,
-  Lock,
-  Save,
-  CheckCircle,
-  AlertCircle,
-  Heart,
-} from "lucide-react";
-import { useTranslations } from "next-intl";
 import { apiFetch } from "@/utils/api";
+import { AlertCircle, CheckCircle, Heart, Lock, Save, Store, User } from "lucide-react";
+import { useSession } from "next-auth/react";
+import { useTranslations } from "next-intl";
+import { useRouter } from "next/navigation";
+import { useEffect, useState } from "react";
 
 export default function ProfilePage() {
   const t = useTranslations("profile");
@@ -113,9 +106,7 @@ export default function ProfilePage() {
       </div>
 
       <div className="max-w-4xl mx-auto px-6 md:px-12 py-10">
-        <h1 className="font-serif text-5xl md:text-6xl font-bold italic text-white mb-10">
-          {t("title")}
-        </h1>
+        <h1 className="font-serif text-5xl md:text-6xl font-bold italic text-white mb-10">{t("title")}</h1>
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
           {/* Sidebar */}
@@ -125,12 +116,8 @@ export default function ProfilePage() {
                 <div className="w-20 h-20 bg-accent/20 border border-accent/30 flex items-center justify-center mb-4">
                   <User className="w-8 h-8 text-accent" />
                 </div>
-                <p className="text-white font-bold text-lg">
-                  {session?.user?.name}
-                </p>
-                <p className="text-white/40 text-xs mt-1">
-                  {session?.user?.email}
-                </p>
+                <p className="text-white font-bold text-lg">{session?.user?.name}</p>
+                <p className="text-white/40 text-xs mt-1">{session?.user?.email}</p>
                 <span className="mt-3 inline-block px-3 py-1 text-[9px] font-black uppercase tracking-widest bg-accent/20 text-accent border border-accent/30">
                   {(session?.user as { role?: string })?.role || "Customer"}
                 </span>
@@ -150,6 +137,15 @@ export default function ProfilePage() {
                   <Heart className="w-3.5 h-3.5" />
                   {tn("favorites")}
                 </Link>
+                {(session?.user as { role?: string })?.role === "customer" && (
+                  <Link
+                    href="/become-supplier"
+                    className="flex items-center gap-2 px-4 py-2.5 text-xs font-medium text-accent hover:text-accent hover:bg-white/5 transition-colors border-t border-white/10 mt-2 pt-4"
+                  >
+                    <Store className="w-3.5 h-3.5" />
+                    {tn("becomeSupplier")}
+                  </Link>
+                )}
               </div>
             </div>
           </div>
@@ -203,9 +199,7 @@ export default function ProfilePage() {
                         disabled
                         className="w-full bg-white/5 border border-white/10 py-3 px-4 text-sm text-white/40 outline-none cursor-not-allowed"
                       />
-                      <p className="text-[10px] text-white/20">
-                        {t("emailNote")}
-                      </p>
+                      <p className="text-[10px] text-white/20">{t("emailNote")}</p>
                     </div>
                   </div>
                 </div>

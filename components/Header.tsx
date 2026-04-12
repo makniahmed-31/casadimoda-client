@@ -1,9 +1,10 @@
 "use client";
 
-import { useState, useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import AnnouncementBar from "./header/AnnouncementBar";
-import TopBar from "./header/TopBar";
+import Navbar from "./header/Navbar";
 import Sidebar from "./header/Sidebar";
+import TopBar from "./header/TopBar";
 
 interface HeaderProps {
   categories: string[];
@@ -11,21 +12,14 @@ interface HeaderProps {
   categoryMap: Record<string, string[]>;
 }
 
-export default function Header({
-  categories,
-  brands,
-  categoryMap,
-}: HeaderProps) {
+export default function Header({ categories, brands, categoryMap }: HeaderProps) {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const headerRef = useRef<HTMLElement>(null);
 
   useEffect(() => {
     const updateHeight = () => {
       if (headerRef.current) {
-        document.documentElement.style.setProperty(
-          "--header-height",
-          `${headerRef.current.offsetHeight}px`,
-        );
+        document.documentElement.style.setProperty("--header-height", `${headerRef.current.offsetHeight}px`);
       }
     };
     updateHeight();
@@ -45,6 +39,7 @@ export default function Header({
       />
       <AnnouncementBar />
       <TopBar />
+      <Navbar onOpenSidebar={() => setIsSidebarOpen(true)} />
     </header>
   );
 }

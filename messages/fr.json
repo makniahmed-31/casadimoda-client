@@ -24,7 +24,11 @@
     "favorites": "Favoris",
     "cart": "Panier",
     "searchPlaceholder": "Rechercher...",
-    "viewAllResults": "Voir tous les résultats"
+    "viewAllResults": "Voir tous les résultats",
+    "all": "Tout",
+    "allProducts": "Tous les Produits",
+    "vipStore": "Boutique VIP",
+    "sellOnCasa": "Vendez sur Casa Di Moda"
   },
   "sidebar": {
     "hello": "Bonjour, Connectez-vous.",
@@ -217,12 +221,11 @@
     "confirm": "Confirm",
     "noMatch": "No match",
     "submit": "S'inscrire",
-    "alreadyHaveAccount": "Vous avez un compte ?",
+    "alreadyHaveAccount": "Already have an account?",
     "latestNews": "Dernières actualités",
     "sellOnCasa": "Vendre sur Casa di Moda ?",
     "registerAsSupplier": "Register as a supplier today",
     "applyNow": "Apply Now",
-    "alreadyHaveAccount": "Already have an account?",
     "signIn": "Sign In"
   },
   "cart": {
@@ -622,7 +625,6 @@
     "enlistNewItem": "Ajouter un Produit",
     "searchRegistry": "Rechercher...",
     "filters": "Filtres",
-    "productDetails": "Détails du Produit",
     "category": "Catégorie",
     "subcategory": "Sous-catégorie",
     "brand": "Marque",
@@ -643,7 +645,6 @@
     "gros": "Gros",
     "sizes": "Tailles",
     "sizePlaceholder": "ex. S, M, L, XL",
-    "colors": "Couleurs",
     "selectColor": "— Sélectionner une couleur —",
     "originalPrice": "Prix Original",
     "discountPrice": "Prix Remisé",

@@ -24,7 +24,11 @@
     "favorites": "Favorites",
     "cart": "Cart",
     "searchPlaceholder": "Search...",
-    "viewAllResults": "View all results"
+    "viewAllResults": "View all results",
+    "all": "All",
+    "allProducts": "All Products",
+    "vipStore": "VIP Store",
+    "sellOnCasa": "Sell on Casa Di Moda"
   },
   "sidebar": {
     "hello": "Hello, Sign In.",
@@ -621,7 +625,6 @@
     "enlistNewItem": "Enlist New Item",
     "searchRegistry": "Search registry...",
     "filters": "Filters",
-    "productDetails": "Product Details",
     "category": "Category",
     "subcategory": "Subcategory",
     "brand": "Brand",
@@ -642,7 +645,6 @@
     "gros": "Wholesale",
     "sizes": "Sizes",
     "sizePlaceholder": "e.g. S, M, L, XL",
-    "colors": "Colors",
     "selectColor": "— Select a color —",
     "originalPrice": "Original Price",
     "discountPrice": "Discount Price",

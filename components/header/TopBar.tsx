@@ -224,6 +224,15 @@ export default function TopBar() {
                             {t("myOrders")}
                           </Link>
                         )}
+                        {session.user.role === "customer" && (
+                          <Link
+                            href="/become-supplier"
+                            onClick={() => setShowAccountMenu(false)}
+                            className="px-4 py-2.5 text-xs font-medium text-accent hover:bg-accent hover:text-secondary transition-colors border-t border-gray-100"
+                          >
+                            {t("becomeSupplier")}
+                          </Link>
+                        )}
                         <div className="h-px bg-gray-100 mx-4 my-1" />
                         <button
                           onClick={() => signOut()}
