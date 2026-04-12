@@ -2,6 +2,7 @@
 
 import { Link } from "@/i18n/routing";
 import { Crown, Menu, Package, ShoppingBag, Store } from "lucide-react";
+import { useSession } from "next-auth/react";
 import { useTranslations } from "next-intl";
 
 interface NavbarProps {
@@ -10,6 +11,9 @@ interface NavbarProps {
 
 export default function Navbar({ onOpenSidebar }: NavbarProps) {
   const t = useTranslations("nav");
+  const { data: session } = useSession();
+  const role = session?.user as { role?: string; isAdmin?: boolean } | undefined;
+  const showBecomeSupplier = !role?.isAdmin && role?.role !== "supplier" && role?.role !== "transporter";
 
   return (
     <div className="bg-primary/95 border-t border-white/10 px-2 md:px-4 py-1 flex items-center gap-2 md:gap-4 text-sm font-medium">
@@ -47,13 +51,15 @@ export default function Navbar({ onOpenSidebar }: NavbarProps) {
         </Link>
       </div>
 
-      <Link
-        href="/become-supplier"
-        className="flex items-center gap-2 p-1 px-2 border border-accent/40 hover:border-accent transition-all text-accent hover:text-white font-bold whitespace-nowrap"
-      >
-        <Store size={22} className="text-accent" />
-        <span className="hidden md:inline">{t("becomeSupplier")}</span>
-      </Link>
+      {showBecomeSupplier && (
+        <Link
+          href="/become-supplier"
+          className="flex items-center gap-2 p-1 px-2 border border-accent/40 hover:border-accent transition-all text-accent hover:text-white font-bold whitespace-nowrap"
+        >
+          <Store size={22} className="text-accent" />
+          <span className="hidden md:inline">{t("becomeSupplier")}</span>
+        </Link>
+      )}
     </div>
   );
 }

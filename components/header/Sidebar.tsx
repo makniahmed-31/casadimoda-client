@@ -2,6 +2,7 @@
 
 import { Link } from "@/i18n/routing";
 import { ChevronRight, Store, User, X } from "lucide-react";
+import { useSession } from "next-auth/react";
 import { useTranslations } from "next-intl";
 
 interface SidebarProps {
@@ -15,6 +16,9 @@ interface SidebarProps {
 export default function Sidebar({ isOpen, onClose, categories, brands, categoryMap }: SidebarProps) {
   const t = useTranslations("sidebar");
   const tn = useTranslations("nav");
+  const { data: session } = useSession();
+  const role = session?.user as { role?: string; isAdmin?: boolean } | undefined;
+  const showBecomeSupplier = !role?.isAdmin && role?.role !== "supplier" && role?.role !== "transporter";
   return (
     <>
       {/* Overlay */}
@@ -99,23 +103,25 @@ export default function Sidebar({ isOpen, onClose, categories, brands, categoryM
           </section>
 
           {/* Become a Supplier */}
-          <section className="pt-6 border-t border-gray-100">
-            <Link
-              href="/become-supplier"
-              onClick={onClose}
-              className="flex items-center gap-3 p-4 bg-accent/10 border border-accent/30 hover:bg-accent hover:text-white group transition-all"
-            >
-              <Store className="w-5 h-5 text-accent group-hover:text-white transition-colors" />
-              <div>
-                <p className="text-[11px] font-black uppercase tracking-widest text-accent group-hover:text-white transition-colors">
-                  {tn("becomeSupplier")}
-                </p>
-                <p className="text-[10px] text-text-dark/50 group-hover:text-white/80 transition-colors mt-0.5">
-                  {tn("sellOnCasa")}
-                </p>
-              </div>
-            </Link>
-          </section>
+          {showBecomeSupplier && (
+            <section className="pt-6 border-t border-gray-100">
+              <Link
+                href="/become-supplier"
+                onClick={onClose}
+                className="flex items-center gap-3 p-4 bg-accent/10 border border-accent/30 hover:bg-accent hover:text-white group transition-all"
+              >
+                <Store className="w-5 h-5 text-accent group-hover:text-white transition-colors" />
+                <div>
+                  <p className="text-[11px] font-black uppercase tracking-widest text-accent group-hover:text-white transition-colors">
+                    {tn("becomeSupplier")}
+                  </p>
+                  <p className="text-[10px] text-text-dark/50 group-hover:text-white/80 transition-colors mt-0.5">
+                    {tn("sellOnCasa")}
+                  </p>
+                </div>
+              </Link>
+            </section>
+          )}
 
           {/* Help & Settings */}
           <section className="pt-6 border-t border-gray-100">
