@@ -686,7 +686,14 @@
     "themeHowItWorks": "كيف يعمل؟",
     "themeHowItWorksDesc": "يُدخل كل ثيم متغيرات CSS مخصصة عبر الموقع بأكمله. تتحدث الأزرار وبطاقات المنتجات وجميع المكونات فورًا. أضف ثيمات جديدة بتعديل public/themes.json فقط.",
     "themeTokens": "متغيرات الثيم الحالي",
-    "themeTokensDesc": "متغيرات CSS المُحقنة في :root"
+    "themeTokensDesc": "متغيرات CSS المُحقنة في :root",
+    "productType": "نوع المنتج",
+    "local": "محلي",
+    "international": "دولي",
+    "shippingTime": "مدة الشحن",
+    "shippingTimePlaceholder": "مثال: 15-30 يوم",
+    "cbmRequired": "CBM مطلوب للمنتجات الدولية",
+    "shippingTimeRequired": "مدة الشحن مطلوبة للمنتجات الدولية"
   },
   "footer": {
     "allRightsReserved": "جميع الحقوق محفوظة. كازا دي مودا © {year}.",

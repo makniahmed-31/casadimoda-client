@@ -84,6 +84,7 @@ export interface Product {
   weight?: string;
   cbm?: number;
   hsCode?: string;
+  productType?: "local" | "international";
   isFeatured?: boolean;
   supplier?: string | Supplier;
   approvalStatus?: "pending" | "approved" | "rejected";

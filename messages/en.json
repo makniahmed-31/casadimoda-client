@@ -686,7 +686,14 @@
     "themeHowItWorks": "How does it work?",
     "themeHowItWorksDesc": "Each theme injects custom CSS variables across the entire site. All buttons, product cards and components update instantly. Add new themes by editing public/themes.json only — no component code changes needed.",
     "themeTokens": "Active Theme Tokens",
-    "themeTokensDesc": "CSS variables injected into :root"
+    "themeTokensDesc": "CSS variables injected into :root",
+    "productType": "Product Type",
+    "local": "Local",
+    "international": "International",
+    "shippingTime": "Shipping Time",
+    "shippingTimePlaceholder": "e.g. 15-30 days",
+    "cbmRequired": "CBM is required for international products",
+    "shippingTimeRequired": "Shipping time is required for international products"
   },
   "footer": {
     "allRightsReserved": "All rights reserved. Casa Di Moda © {year}.",

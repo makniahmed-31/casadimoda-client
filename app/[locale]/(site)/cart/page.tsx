@@ -33,6 +33,7 @@ export default function CartPage() {
   const [giftCardError, setGiftCardError] = useState("");
   const [giftCardLoading, setGiftCardLoading] = useState(false);
   const [fullName, setFullName] = useState("");
+  const [phone, setPhone] = useState("");
   const [address, setAddress] = useState("");
   const [city, setCity] = useState("");
   const [postalCode, setPostalCode] = useState("");
@@ -468,6 +469,18 @@ export default function CartPage() {
               </div>
               <div>
                 <p className="text-[10px] font-black uppercase tracking-widest text-white/40 mb-1">
+                  Numéro de téléphone <span className="text-red-500">*</span>
+                </p>
+                <input
+                  type="tel"
+                  value={phone}
+                  onChange={(e) => setPhone(e.target.value)}
+                  placeholder="ex: +216 XX XXX XXX"
+                  className={`w-full bg-white/5 border py-3 px-4 text-sm text-white placeholder:text-white/20 outline-none transition-all ${attempted && !phone ? "border-red-500" : "border-white/10 focus:border-accent"}`}
+                />
+              </div>
+              <div>
+                <p className="text-[10px] font-black uppercase tracking-widest text-white/40 mb-1">
                   {t("deliveryAddress")} <span className="text-red-500">*</span>
                 </p>
                 <textarea
@@ -673,7 +686,7 @@ export default function CartPage() {
                     router.push("/login");
                     return;
                   }
-                  if (!fullName || !address || !city || !postalCode || !country) {
+                  if (!fullName || !phone || !address || !city || !postalCode || !country) {
                     setError(t("fillAllFields"));
                     return;
                   }
@@ -715,7 +728,7 @@ export default function CartPage() {
                       headers: { "Content-Type": "application/json" },
                       body: JSON.stringify({
                         orderItems,
-                        shippingAddress: { fullName, address, city, postalCode, country },
+                        shippingAddress: { fullName, phone, address, city, postalCode, country },
                         paymentMethod,
                         couponCode: promoApplied?.code,
                         giftCardCode: giftCardApplied?.code,
@@ -728,6 +741,23 @@ export default function CartPage() {
                       setError(d.message || "Error");
                       return;
                     }
+                    const { _id: orderId } = await res.json();
+                    const itemLines = orderItems.map((i) => `• ${i.name} x${i.quantity} — ${i.price} TND`).join("\n");
+                    const waMsg = [
+                      `🛒 Nouvelle commande — Casa Di Moda`,
+                      ``,
+                      `Commande: #${orderId}`,
+                      `Client: ${fullName}`,
+                      `Téléphone: ${phone}`,
+                      `Adresse: ${address}, ${city} ${postalCode}, ${country}`,
+                      ``,
+                      `Articles:`,
+                      itemLines,
+                      ``,
+                      `Total: ${finalTotal} TND`,
+                      `Paiement: ${paymentMethod}`,
+                    ].join("\n");
+                    window.open(`https://wa.me/21694616036?text=${encodeURIComponent(waMsg)}`, "_blank");
                     dispatch({ type: "CART_RESET" });
                     router.push("/orders");
                   } finally {

@@ -4,12 +4,41 @@ import ImageUpload from "@/components/ImageUpload";
 import Pagination from "@/components/Pagination";
 import { Brand, Category, Product, SubCategory } from "@/types";
 import { apiFetch } from "@/utils/api";
-import { Edit, Filter, Package, Plus, Search, Trash2, X } from "lucide-react";
+import {
+  ArrowLeft,
+  ArrowRight,
+  CheckCircle,
+  ChevronDown,
+  Edit,
+  FileImage,
+  Filter,
+  Globe,
+  Package,
+  Palette,
+  Plus,
+  Search,
+  Settings,
+  Ship,
+  Tag,
+  Trash2,
+  X,
+} from "lucide-react";
 import { useTranslations } from "next-intl";
 import Image from "next/image";
 import { useRouter, useSearchParams } from "next/navigation";
-import { useEffect, useState } from "react";
+import React, { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
+
+const ALL_STEPS = [
+  { id: "type", label: "Type", icon: Globe },
+  { id: "details", label: "Details", icon: Package },
+  { id: "variants", label: "Variants", icon: Palette },
+  { id: "pricing", label: "Pricing", icon: Tag },
+  { id: "media", label: "Media", icon: FileImage },
+  { id: "shipping", label: "Shipping", icon: Ship },
+  { id: "admin", label: "Admin", icon: Settings },
+  { id: "review", label: "Review", icon: CheckCircle },
+];
 
 export default function ProductsTable({
   initialProducts,
@@ -30,43 +59,70 @@ export default function ProductsTable({
   const [editingProduct, setEditingProduct] = useState<Product | null>(null);
   const [searchQuery, setSearchQuery] = useState("");
   const [sizes, setSizes] = useState<string[]>([]);
-  const [sizeInput, setSizeInput] = useState("");
+  const [selectedSize, setSelectedSize] = useState("");
   const [colors, setColors] = useState<string[]>([]);
   const [colorImages, setColorImages] = useState<Record<string, string>>({});
+  const [primaryColor, setPrimaryColor] = useState("");
   const [dbColors, setDbColors] = useState<{ _id: string; name: string; hex: string }[]>([]);
   const [selectedDbColor, setSelectedDbColor] = useState("");
+  const [currentStep, setCurrentStep] = useState(0);
+
   const { register, handleSubmit, reset, setValue, watch } = useForm<Product>();
   const selectedCategory = watch("category");
-  const watchedImage = watch("image");
+  const productType = watch("productType");
+  const formData = watch();
+
   const searchParams = useSearchParams();
   const router = useRouter();
-
   const currentPage = Number(searchParams.get("page")) || 1;
 
-  // Initialize search query from URL
+  const steps = ALL_STEPS.filter((s) => s.id !== "shipping" || productType === "international");
+  const totalSteps = steps.length;
+  const safeStep = Math.min(currentStep, totalSteps - 1);
+  const currentStepId = steps[safeStep]?.id ?? "type";
+  const isLastStep = safeStep === totalSteps - 1;
+
+  const nextStep = () => setCurrentStep((s) => Math.min(s + 1, totalSteps - 1));
+  const prevStep = () => setCurrentStep((s) => Math.max(s - 1, 0));
+
+  const canProceed = (): boolean => {
+    switch (currentStepId) {
+      case "type":
+        return true;
+      case "details":
+        return !!formData.name && !!formData.category && !!formData.subCategory && !!formData.brand;
+      case "variants":
+        return true;
+      case "pricing":
+        return Number(formData.price) > 0;
+      case "media":
+        return !!formData.description;
+      case "shipping":
+        return !!(formData.cbm && Number(formData.cbm) > 0 && formData.deliveryTime);
+      default:
+        return true;
+    }
+  };
+
   useEffect(() => {
     const query = searchParams.get("q") || "";
     setSearchQuery(query);
   }, [searchParams]);
 
-  // Handle search with debounce
   useEffect(() => {
-    // Skip if the search query matches what's already in the URL
     const currentQuery = searchParams.get("q") || "";
     if (currentQuery === searchQuery) return;
-
     const timeoutId = setTimeout(() => {
       const params = new URLSearchParams(searchParams.toString());
       if (searchQuery) {
         params.set("q", searchQuery);
-        params.delete("page"); // Reset to page 1 when searching
+        params.delete("page");
       } else {
         params.delete("q");
       }
       const queryString = params.toString();
       router.push(`/admin/products${queryString ? `?${queryString}` : ""}`);
-    }, 500); // 500ms debounce
-
+    }, 500);
     return () => clearTimeout(timeoutId);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [searchQuery]);
@@ -76,6 +132,7 @@ export default function ProductsTable({
   };
 
   const openModal = (product: Product | null = null) => {
+    setCurrentStep(0);
     if (product) {
       setEditingProduct(product);
       Object.keys(product).forEach((key) => {
@@ -88,6 +145,11 @@ export default function ProductsTable({
         ci[color] = image;
       });
       setColorImages(ci);
+      const matchedPrimary =
+        (product.colorImages || []).find((ci) => ci.image === product.image)?.color ||
+        product.colorImages?.[0]?.color ||
+        "";
+      setPrimaryColor(matchedPrimary);
     } else {
       setEditingProduct(null);
       reset({
@@ -104,15 +166,16 @@ export default function ProductsTable({
         weight: "",
         cbm: 0,
         hsCode: "",
-        image: "",
         isFeatured: false,
         parentCategory: "detail",
+        productType: "local",
       });
       setSizes([]);
       setColors([]);
       setColorImages({});
+      setPrimaryColor("");
     }
-    setSizeInput("");
+    setSelectedSize("");
     setSelectedDbColor("");
     setShowModal(true);
   };
@@ -127,7 +190,6 @@ export default function ProductsTable({
   useEffect(() => {
     if (searchParams.get("action") === "create") {
       openModal();
-      // Remove the query param so it doesn't open again on refresh
       router.replace("/admin/products");
     }
   }, [searchParams, router]);
@@ -153,42 +215,24 @@ export default function ProductsTable({
         image: colorImages[color],
         hex: dbColors.find((c) => c.name === color)?.hex || "",
       }));
-
-    // First color image is the primary product image
-    const primaryImage = colors.length > 0 && colorImages[colors[0]] ? colorImages[colors[0]] : data.image || "";
-
+    const primaryImage =
+      (primaryColor && colorImages[primaryColor]) ||
+      (colors.find((c) => colorImages[c]) ? colorImages[colors.find((c) => colorImages[c])!] : "");
     const body = editingProduct
-      ? {
-          ...data,
-          id: editingProduct._id,
-          image: primaryImage,
-          sizes,
-          colors,
-          colorImages: colorImagesArray,
-        }
-      : {
-          ...data,
-          image: primaryImage,
-          sizes,
-          colors,
-          colorImages: colorImagesArray,
-        };
-
-    // Auto-generate slug if empty
+      ? { ...data, id: editingProduct._id, image: primaryImage, sizes, colors, colorImages: colorImagesArray }
+      : { ...data, image: primaryImage, sizes, colors, colorImages: colorImagesArray };
     if (!data.slug) {
       body.slug = data.name
         .toLowerCase()
         .replace(/ /g, "-")
         .replace(/[^\w-]+/g, "");
     }
-
     setSaving(true);
     const res = await apiFetch(url, {
       method,
       body: JSON.stringify(body),
       headers: { "Content-Type": "application/json" },
     });
-
     setSaving(false);
     if (res.ok) {
       setShowModal(false);
@@ -219,7 +263,7 @@ export default function ProductsTable({
         </div>
         <button
           onClick={() => openModal()}
-          className="bg-primary hover:bg-black text-white px-8 py-4  font-black uppercase text-[10px] tracking-widest shadow-xl flex items-center gap-2 transition-all active:scale-95 cursor-pointer"
+          className="bg-primary hover:bg-black text-white px-8 py-4 font-black uppercase text-[10px] tracking-widest shadow-xl flex items-center gap-2 transition-all active:scale-95 cursor-pointer"
         >
           <Plus size={16} /> {t("enlistNewItem")}
         </button>
@@ -231,18 +275,18 @@ export default function ProductsTable({
           <div className="relative flex-grow">
             <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-text-dark/20" size={18} />
             <input
-              className="w-full bg-secondary border-none  py-4 pl-12 pr-4 outline-none font-bold text-primary placeholder:text-gray-300"
+              className="w-full bg-secondary border-none py-4 pl-12 pr-4 outline-none font-bold text-primary placeholder:text-gray-300"
               placeholder={t("searchRegistry")}
               value={searchQuery}
               onChange={handleSearchChange}
             />
           </div>
-          <button className="bg-secondary px-6 py-4  flex items-center gap-2 text-primary font-black uppercase text-[10px] tracking-widest hover:bg-gray-100 transition-all cursor-pointer">
+          <button className="bg-secondary px-6 py-4 flex items-center gap-2 text-primary font-black uppercase text-[10px] tracking-widest hover:bg-gray-100 transition-all cursor-pointer">
             <Filter size={16} /> {t("filters")}
           </button>
         </div>
 
-        {/* Catalog Table */}
+        {/* Table */}
         <div className="overflow-x-auto">
           <table className="w-full text-left min-w-[800px]">
             <thead>
@@ -265,10 +309,10 @@ export default function ProductsTable({
             </thead>
             <tbody className="divide-y divide-gray-50">
               {initialProducts.map((product) => (
-                <tr key={product._id} className="group hover:bg-secondary/10 transition-colors">
+                <tr key={product._id} className="hover:bg-secondary/10 transition-colors">
                   <td className="py-6">
                     <div className="flex items-center gap-4">
-                      <div className="relative w-16 h-20  overflow-hidden bg-secondary flex-shrink-0">
+                      <div className="relative w-16 h-20 overflow-hidden bg-secondary flex-shrink-0">
                         <Image
                           src={product.image || "/images/placeholder.jpg"}
                           alt={product.name}
@@ -286,12 +330,12 @@ export default function ProductsTable({
                     </div>
                   </td>
                   <td className="py-6">
-                    <span className="text-[10px] font-black text-accent bg-accent/5 px-3 py-1  uppercase tracking-widest">
+                    <span className="text-[10px] font-black text-accent bg-accent/5 px-3 py-1 uppercase tracking-widest">
                       {product.category}
                     </span>
                   </td>
                   <td className="py-6">
-                    <span className="text-[10px] font-bold text-text-dark/40 bg-secondary px-3 py-1  uppercase tracking-widest">
+                    <span className="text-[10px] font-bold text-text-dark/40 bg-secondary px-3 py-1 uppercase tracking-widest">
                       {product.subCategory}
                     </span>
                   </td>
@@ -321,16 +365,16 @@ export default function ProductsTable({
                     </div>
                   </td>
                   <td className="py-6 text-right">
-                    <div className="flex justify-end gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                    <div className="flex justify-end gap-2 ">
                       <button
                         onClick={() => openModal(product)}
-                        className="p-3 bg-secondary text-primary  hover:bg-white hover:text-accent shadow-sm transition-all cursor-pointer"
+                        className="p-3 bg-secondary text-primary hover:bg-white hover:text-accent shadow-sm transition-all cursor-pointer"
                       >
                         <Edit size={16} />
                       </button>
                       <button
                         onClick={() => deleteProduct(product._id)}
-                        className="p-3 bg-secondary text-primary  hover:bg-red-50 hover:text-red-500 shadow-sm transition-all cursor-pointer"
+                        className="p-3 bg-secondary text-primary hover:bg-red-50 hover:text-red-500 shadow-sm transition-all cursor-pointer"
                       >
                         <Trash2 size={16} />
                       </button>
@@ -340,7 +384,7 @@ export default function ProductsTable({
               ))}
               {initialProducts.length === 0 && (
                 <tr>
-                  <td colSpan={5} className="py-20 text-center">
+                  <td colSpan={6} className="py-20 text-center">
                     <div className="flex flex-col items-center gap-4">
                       <Package size={48} className="text-gray-100" />
                       <p className="text-xs font-bold text-text-dark/30 uppercase tracking-[0.2em]">
@@ -359,14 +403,20 @@ export default function ProductsTable({
         </div>
       </div>
 
-      {/* Premium Product Modal */}
+      {/* Product Modal — Stepper */}
       {showModal && (
         <div className="fixed inset-0 bg-primary/40 backdrop-blur-sm z-[100] flex items-center justify-center p-4">
-          <div className="bg-white w-full max-w-4xl  shadow-2xl animate-in zoom-in duration-300 max-h-[90vh] flex flex-col overflow-hidden">
-            <div className="p-10 pb-4 flex justify-between items-center bg-white z-10">
-              <h2 className="text-3xl font-black text-primary tracking-tight">
-                {editingProduct ? t("refineMasterpiece") : t("enlistNewCreation")}
-              </h2>
+          <div className="bg-white w-full max-w-2xl shadow-2xl max-h-[90vh] flex flex-col overflow-hidden">
+            {/* Header */}
+            <div className="px-8 py-5 border-b border-gray-100 flex justify-between items-center shrink-0">
+              <div>
+                <h2 className="text-2xl font-black text-primary tracking-tight">
+                  {editingProduct ? t("refineMasterpiece") : t("enlistNewCreation")}
+                </h2>
+                <p className="text-[9px] font-bold uppercase tracking-widest text-text-dark/30 mt-0.5">
+                  Step {safeStep + 1} of {totalSteps} — {steps[safeStep].label}
+                </p>
+              </div>
               <button
                 onClick={() => setShowModal(false)}
                 className="p-2 hover:bg-secondary rounded-full transition-all cursor-pointer"
@@ -375,115 +425,255 @@ export default function ProductsTable({
               </button>
             </div>
 
+            {/* Progress */}
+            <div className="px-8 py-4 border-b border-gray-100 shrink-0">
+              <div className="flex items-center">
+                {steps.map((step, index) => (
+                  <React.Fragment key={step.id}>
+                    <div className="flex flex-col items-center shrink-0">
+                      <div
+                        className={`w-7 h-7 rounded-full flex items-center justify-center transition-all ${
+                          index < safeStep
+                            ? "bg-accent text-white"
+                            : index === safeStep
+                              ? "bg-accent text-white ring-4 ring-accent/20"
+                              : "bg-secondary text-primary/30"
+                        }`}
+                      >
+                        <step.icon size={12} />
+                      </div>
+                      <span
+                        className={`text-[8px] font-bold uppercase tracking-widest mt-1 ${
+                          index <= safeStep ? "text-accent" : "text-text-dark/20"
+                        }`}
+                      >
+                        {step.label}
+                      </span>
+                    </div>
+                    {index < steps.length - 1 && (
+                      <div
+                        className={`flex-1 h-px mx-2 transition-all ${index < safeStep ? "bg-accent" : "bg-gray-200"}`}
+                      />
+                    )}
+                  </React.Fragment>
+                ))}
+              </div>
+            </div>
+
             <form onSubmit={handleSubmit(onSubmit)} className="flex flex-col flex-grow overflow-hidden">
-              <div className="flex-grow overflow-y-auto p-10 pt-4 space-y-4 md:space-y-8">
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-                  {/* Left Side: General Info */}
+              <div className="flex-grow overflow-y-auto p-8 space-y-6">
+                {/* Step: Type */}
+                {currentStepId === "type" && (
                   <div className="space-y-6">
+                    <div>
+                      <h3 className="text-lg font-black text-primary mb-1">{t("productType")}</h3>
+                      <p className="text-sm text-text-dark/40">Is this a local or international product?</p>
+                    </div>
+                    <input type="hidden" {...register("productType")} />
+                    <div className="grid grid-cols-2 gap-4">
+                      <button
+                        type="button"
+                        onClick={() => setValue("productType", "local")}
+                        className={`p-6 border-2 text-left transition-all cursor-pointer ${
+                          productType !== "international"
+                            ? "border-accent bg-accent/5"
+                            : "border-gray-200 hover:border-gray-300"
+                        }`}
+                      >
+                        <Package
+                          size={28}
+                          className={productType !== "international" ? "text-accent" : "text-primary/30"}
+                        />
+                        <p className="font-black text-primary mt-4 text-base">{t("local")}</p>
+                        <p className="text-xs text-text-dark/40 mt-1 leading-relaxed">
+                          Products sourced and shipped locally within the country
+                        </p>
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => setValue("productType", "international")}
+                        className={`p-6 border-2 text-left transition-all cursor-pointer ${
+                          productType === "international"
+                            ? "border-accent bg-accent/5"
+                            : "border-gray-200 hover:border-gray-300"
+                        }`}
+                      >
+                        <Globe
+                          size={28}
+                          className={productType === "international" ? "text-accent" : "text-primary/30"}
+                        />
+                        <p className="font-black text-primary mt-4 text-base">{t("international")}</p>
+                        <p className="text-xs text-text-dark/40 mt-1 leading-relaxed">
+                          Imported products — requires CBM and shipping time
+                        </p>
+                      </button>
+                    </div>
+                  </div>
+                )}
+
+                {/* Step: Details */}
+                {currentStepId === "details" && (
+                  <div className="space-y-5">
+                    <div>
+                      <h3 className="text-lg font-black text-primary mb-1">Product Details</h3>
+                      <p className="text-sm text-text-dark/40">Basic product information</p>
+                    </div>
+
                     <div className="space-y-2">
-                      <label className="text-[11px] font-black uppercase tracking-widest text-primary ml-2">
+                      <label className="text-[11px] font-black uppercase tracking-widest text-primary">
                         {t("creationName")}
                       </label>
                       <input
                         {...register("name", { required: true })}
-                        className="w-full bg-secondary border-none  p-4 outline-none font-bold text-primary"
+                        className="w-full bg-secondary border-none p-4 outline-none font-bold text-primary"
                         placeholder={t("namePlaceholder")}
                       />
                     </div>
 
                     <div className="grid grid-cols-2 gap-4">
                       <div className="space-y-2">
-                        <label className="text-[11px] font-black uppercase tracking-widest text-primary ml-2">
+                        <label className="text-[11px] font-black uppercase tracking-widest text-primary">
                           {t("category")}
                         </label>
-                        <select
-                          {...register("category", { required: true })}
-                          className="w-full bg-secondary border-none  p-4 outline-none font-bold text-primary appearance-none"
-                        >
-                          <option value="">{t("selectCategory")}</option>
-                          {categories.map((cat) => (
-                            <option key={cat._id} value={cat.name}>
-                              {cat.name}
-                            </option>
-                          ))}
-                        </select>
-                      </div>
-                      <div className="space-y-2">
-                        <label className="text-[11px] font-black uppercase tracking-widest text-primary ml-2">
-                          {t("subcategory")}
-                        </label>
-                        <select
-                          {...register("subCategory", { required: true })}
-                          className="w-full bg-secondary border-none  p-4 outline-none font-bold text-primary appearance-none"
-                        >
-                          <option value="">{t("selectSubcategory")}</option>
-                          {subCategories
-                            .filter((sub) => !selectedCategory || sub.parentCategory === selectedCategory)
-                            .map((sub) => (
-                              <option key={sub._id} value={sub.name}>
-                                {sub.name}
+                        <div className="relative">
+                          <select
+                            {...register("category", { required: true })}
+                            className="w-full bg-secondary border-none p-4 pr-10 outline-none font-bold text-primary appearance-none cursor-pointer"
+                          >
+                            <option value="">{t("selectCategory")}</option>
+                            {categories.map((cat) => (
+                              <option key={cat._id} value={cat.name}>
+                                {cat.name}
                               </option>
                             ))}
-                        </select>
+                          </select>
+                          <ChevronDown
+                            size={14}
+                            className="absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none text-primary/40"
+                          />
+                        </div>
+                      </div>
+                      <div className="space-y-2">
+                        <label className="text-[11px] font-black uppercase tracking-widest text-primary">
+                          {t("subcategory")}
+                        </label>
+                        <div className="relative">
+                          <select
+                            {...register("subCategory", { required: true })}
+                            className="w-full bg-secondary border-none p-4 pr-10 outline-none font-bold text-primary appearance-none cursor-pointer"
+                          >
+                            <option value="">{t("selectSubcategory")}</option>
+                            {subCategories
+                              .filter((sub) => !selectedCategory || sub.parentCategory === selectedCategory)
+                              .map((sub) => (
+                                <option key={sub._id} value={sub.name}>
+                                  {sub.name}
+                                </option>
+                              ))}
+                          </select>
+                          <ChevronDown
+                            size={14}
+                            className="absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none text-primary/40"
+                          />
+                        </div>
                       </div>
                     </div>
 
-                    <div className="space-y-2">
-                      <label className="text-[11px] font-black uppercase tracking-widest text-primary ml-2">
-                        {t("brand")}
-                      </label>
-                      <select
-                        {...register("brand", { required: true })}
-                        className="w-full bg-secondary border-none  p-4 outline-none font-bold text-primary appearance-none"
-                      >
-                        <option value="">{t("selectBrand")}</option>
-                        {brands.map((brand) => (
-                          <option key={brand._id} value={brand.name}>
-                            {brand.name}
-                          </option>
-                        ))}
-                      </select>
+                    <div className="grid grid-cols-2 gap-4">
+                      <div className="space-y-2">
+                        <label className="text-[11px] font-black uppercase tracking-widest text-primary">
+                          {t("brand")}
+                        </label>
+                        <div className="relative">
+                          <select
+                            {...register("brand", { required: true })}
+                            className="w-full bg-secondary border-none p-4 pr-10 outline-none font-bold text-primary appearance-none cursor-pointer"
+                          >
+                            <option value="">{t("selectBrand")}</option>
+                            {brands.map((brand) => (
+                              <option key={brand._id} value={brand.name}>
+                                {brand.name}
+                              </option>
+                            ))}
+                          </select>
+                          <ChevronDown
+                            size={14}
+                            className="absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none text-primary/40"
+                          />
+                        </div>
+                      </div>
+                      <div className="space-y-2">
+                        <label className="text-[11px] font-black uppercase tracking-widest text-primary">
+                          {t("parentCategory")}
+                        </label>
+                        <div className="relative">
+                          <select
+                            {...register("parentCategory", { required: true })}
+                            className="w-full bg-secondary border-none p-4 pr-10 outline-none font-bold text-primary appearance-none cursor-pointer"
+                          >
+                            <option value="detail">{t("detail")}</option>
+                            <option value="gros">{t("gros")}</option>
+                          </select>
+                          <ChevronDown
+                            size={14}
+                            className="absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none text-primary/40"
+                          />
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                )}
+
+                {/* Step: Variants */}
+                {currentStepId === "variants" && (
+                  <div className="space-y-5">
+                    <div>
+                      <h3 className="text-lg font-black text-primary mb-1">Variants</h3>
+                      <p className="text-sm text-text-dark/40">Add sizes and colors (optional)</p>
                     </div>
 
                     <div className="space-y-2">
-                      <label className="text-[11px] font-black uppercase tracking-widest text-primary ml-2">
-                        {t("parentCategory")}
-                      </label>
-                      <select
-                        {...register("parentCategory", { required: true })}
-                        className="w-full bg-secondary border-none  p-4 outline-none font-bold text-primary appearance-none"
-                      >
-                        <option value="detail">{t("detail")}</option>
-                        <option value="gros">{t("gros")}</option>
-                      </select>
-                    </div>
-
-                    <div className="space-y-2">
-                      <label className="text-[11px] font-black uppercase tracking-widest text-primary ml-2">
+                      <label className="text-[11px] font-black uppercase tracking-widest text-primary">
                         {t("sizes")}
                       </label>
                       <div className="flex gap-2">
-                        <input
-                          value={sizeInput}
-                          onChange={(e) => setSizeInput(e.target.value)}
-                          onKeyDown={(e) => {
-                            if (e.key === "Enter") {
-                              e.preventDefault();
-                              if (sizeInput.trim() && !sizes.includes(sizeInput.trim())) {
-                                setSizes([...sizes, sizeInput.trim()]);
-                                setSizeInput("");
-                              }
-                            }
-                          }}
-                          className="flex-1 bg-secondary border-none p-4 outline-none font-bold text-primary"
-                          placeholder={t("sizePlaceholder")}
-                        />
+                        <div className="relative flex-1">
+                          <select
+                            value={selectedSize}
+                            onChange={(e) => setSelectedSize(e.target.value)}
+                            className="w-full bg-secondary border-none p-4 pr-10 outline-none font-bold text-primary appearance-none cursor-pointer"
+                          >
+                            <option value="">— Select a size —</option>
+                            <optgroup label="Clothing">
+                              {["XS", "S", "M", "L", "XL", "XXL", "XXXL"]
+                                .filter((s) => !sizes.includes(s))
+                                .map((s) => (
+                                  <option key={s} value={s}>
+                                    {s}
+                                  </option>
+                                ))}
+                            </optgroup>
+                            <optgroup label="Shoes (EU)">
+                              {["35", "36", "37", "38", "39", "40", "41", "42", "43", "44", "45", "46", "47"]
+                                .filter((s) => !sizes.includes(s))
+                                .map((s) => (
+                                  <option key={s} value={s}>
+                                    {s}
+                                  </option>
+                                ))}
+                            </optgroup>
+                          </select>
+                          <ChevronDown
+                            size={14}
+                            className="absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none text-primary/40"
+                          />
+                        </div>
                         <button
                           type="button"
                           onClick={() => {
-                            if (sizeInput.trim() && !sizes.includes(sizeInput.trim())) {
-                              setSizes([...sizes, sizeInput.trim()]);
-                              setSizeInput("");
+                            if (selectedSize && !sizes.includes(selectedSize)) {
+                              setSizes([...sizes, selectedSize]);
+                              setSelectedSize("");
                             }
                           }}
                           className="bg-accent/10 text-accent font-black uppercase text-[10px] tracking-widest px-4 hover:bg-accent/20 transition-all cursor-pointer"
@@ -513,24 +703,30 @@ export default function ProductsTable({
                     </div>
 
                     <div className="space-y-2">
-                      <label className="text-[11px] font-black uppercase tracking-widest text-primary ml-2">
+                      <label className="text-[11px] font-black uppercase tracking-widest text-primary">
                         {t("colors")}
                       </label>
                       <div className="flex gap-2">
-                        <select
-                          value={selectedDbColor}
-                          onChange={(e) => setSelectedDbColor(e.target.value)}
-                          className="flex-1 bg-secondary border-none p-4 outline-none font-bold text-primary appearance-none"
-                        >
-                          <option value="">{t("selectColor")}</option>
-                          {dbColors
-                            .filter((c) => !colors.includes(c.name))
-                            .map((c) => (
-                              <option key={c._id} value={c.name}>
-                                {c.name} ({c.hex})
-                              </option>
-                            ))}
-                        </select>
+                        <div className="relative flex-1">
+                          <select
+                            value={selectedDbColor}
+                            onChange={(e) => setSelectedDbColor(e.target.value)}
+                            className="w-full bg-secondary border-none p-4 pr-10 outline-none font-bold text-primary appearance-none cursor-pointer"
+                          >
+                            <option value="">{t("selectColor")}</option>
+                            {dbColors
+                              .filter((c) => !colors.includes(c.name))
+                              .map((c) => (
+                                <option key={c._id} value={c.name}>
+                                  {c.name} ({c.hex})
+                                </option>
+                              ))}
+                          </select>
+                          <ChevronDown
+                            size={14}
+                            className="absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none text-primary/40"
+                          />
+                        </div>
                         <button
                           type="button"
                           onClick={() => {
@@ -550,17 +746,44 @@ export default function ProductsTable({
                             <div key={color} className="flex items-center gap-2 bg-secondary px-3 py-2">
                               <span className="flex-1 text-primary font-bold text-xs">{color}</span>
                               {colorImages[color] ? (
-                                <div className="relative w-10 h-10 overflow-hidden bg-white border border-gray-100 flex-shrink-0">
-                                  {/* eslint-disable-next-line @next/next/no-img-element */}
-                                  <img src={colorImages[color]} alt={color} className="w-full h-full object-cover" />
+                                <div className="relative flex-shrink-0">
+                                  <div className="w-10 h-10 overflow-hidden bg-white border border-gray-100">
+                                    {/* eslint-disable-next-line @next/next/no-img-element */}
+                                    <img src={colorImages[color]} alt={color} className="w-full h-full object-cover" />
+                                  </div>
+                                  <button
+                                    type="button"
+                                    onClick={() => {
+                                      setColorImages((prev) => {
+                                        const n = { ...prev };
+                                        delete n[color];
+                                        return n;
+                                      });
+                                      if (primaryColor === color) setPrimaryColor("");
+                                    }}
+                                    className="absolute -top-1.5 -right-1.5 w-4 h-4 bg-red-500 text-white flex items-center justify-center rounded-full cursor-pointer hover:bg-red-600 transition-colors"
+                                  >
+                                    <X size={9} />
+                                  </button>
                                 </div>
                               ) : null}
+                              {colorImages[color] && (
+                                <button
+                                  type="button"
+                                  onClick={() => setPrimaryColor(color)}
+                                  className={`text-[9px] font-black uppercase tracking-widest px-2 py-1 border transition-all cursor-pointer flex-shrink-0 ${
+                                    primaryColor === color
+                                      ? "bg-accent text-white border-accent"
+                                      : "border-gray-300 text-text-dark/30 hover:border-accent/50 hover:text-text-dark/60"
+                                  }`}
+                                >
+                                  {primaryColor === color ? "✓ Cover" : "Cover"}
+                                </button>
+                              )}
                               <ImageUpload
                                 onSuccess={(url) => {
-                                  setColorImages((prev) => ({
-                                    ...prev,
-                                    [color]: url,
-                                  }));
+                                  setColorImages((prev) => ({ ...prev, [color]: url }));
+                                  if (!primaryColor) setPrimaryColor(color);
                                 }}
                                 label={colorImages[color] ? t("changeImage") : t("addImage")}
                                 buttonClassName="text-[9px] font-black uppercase tracking-widest text-accent border border-accent/30 px-2 py-1 hover:bg-accent/10 transition-all cursor-pointer flex-shrink-0"
@@ -584,104 +807,86 @@ export default function ProductsTable({
                         </div>
                       )}
                     </div>
+                  </div>
+                )}
 
-                    <div className="grid grid-cols-3 gap-4">
-                      <div className="space-y-2">
-                        <label className="text-[11px] font-black uppercase tracking-widest text-primary ml-2">
-                          {t("originalPrice")}
-                        </label>
-                        <input
-                          type="number"
-                          {...register("price", { required: true })}
-                          className="w-full bg-secondary border-none  p-4 outline-none font-bold text-primary"
-                          placeholder="0"
-                        />
-                      </div>
-                      <div className="space-y-2">
-                        <label className="text-[11px] font-black uppercase tracking-widest text-primary ml-2">
-                          {t("discountPrice")}
-                        </label>
-                        <input
-                          type="number"
-                          {...register("discountPrice")}
-                          className="w-full bg-secondary border-none  p-4 outline-none font-bold text-red-500"
-                          placeholder={t("optional")}
-                        />
-                      </div>
-                      <div className="space-y-2">
-                        <label className="text-[11px] font-black uppercase tracking-widest text-primary ml-2">
-                          {t("inStock")}
-                        </label>
-                        <input
-                          type="number"
-                          {...register("countInStock", { required: true })}
-                          className="w-full bg-secondary border-none  p-4 outline-none font-bold text-primary"
-                          placeholder="0"
-                        />
-                      </div>
+                {/* Step: Pricing */}
+                {currentStepId === "pricing" && (
+                  <div className="space-y-5">
+                    <div>
+                      <h3 className="text-lg font-black text-primary mb-1">Pricing & Stock</h3>
+                      <p className="text-sm text-text-dark/40">Set price and inventory levels</p>
+                    </div>
+
+                    <div className="space-y-2">
+                      <label className="text-[11px] font-black uppercase tracking-widest text-primary">
+                        {t("originalPrice")}
+                      </label>
+                      <input
+                        type="number"
+                        {...register("price", { required: true })}
+                        className="w-full bg-secondary border-none p-4 outline-none font-bold text-primary"
+                        placeholder="0"
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <label className="text-[11px] font-black uppercase tracking-widest text-primary">
+                        {t("discountPrice")}
+                      </label>
+                      <input
+                        type="number"
+                        {...register("discountPrice")}
+                        className="w-full bg-secondary border-none p-4 outline-none font-bold text-red-500"
+                        placeholder={t("optional")}
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <label className="text-[11px] font-black uppercase tracking-widest text-primary">
+                        {t("inStock")}
+                      </label>
+                      <input
+                        type="number"
+                        {...register("countInStock", { required: true })}
+                        className="w-full bg-secondary border-none p-4 outline-none font-bold text-primary"
+                        placeholder="0"
+                      />
                     </div>
                   </div>
+                )}
 
-                  {/* Right Side: Media & Details */}
-                  <div className="space-y-6">
-                    <div className="space-y-2">
-                      <label className="text-[11px] font-black uppercase tracking-widest text-primary ml-2">
-                        {t("primaryImage")}
-                      </label>
-                      <div className="flex items-center gap-3">
-                        {watchedImage && (
-                          // eslint-disable-next-line @next/next/no-img-element
-                          <img
-                            src={watchedImage}
-                            alt="preview"
-                            className="w-14 h-18 object-cover bg-secondary flex-shrink-0"
-                          />
-                        )}
-                        <ImageUpload
-                          onSuccess={(url) => setValue("image", url)}
-                          label={watchedImage ? t("changeImage") : t("addImage")}
-                          buttonClassName="text-[9px] font-black uppercase tracking-widest text-accent border border-accent/30 px-4 py-3 hover:bg-accent/10 transition-all cursor-pointer"
-                        />
-                      </div>
+                {/* Step: Media */}
+                {currentStepId === "media" && (
+                  <div className="space-y-5">
+                    <div>
+                      <h3 className="text-lg font-black text-primary mb-1">Media & Details</h3>
+                      <p className="text-sm text-text-dark/40">Product image, description and physical specs</p>
                     </div>
 
                     <div className="space-y-2">
-                      <label className="text-[11px] font-black uppercase tracking-widest text-primary ml-2">
+                      <label className="text-[11px] font-black uppercase tracking-widest text-primary">
                         {t("narrativeDescription")}
                       </label>
                       <textarea
                         {...register("description", { required: true })}
-                        className="w-full bg-secondary border-none  p-4 outline-none font-bold text-primary min-h-[120px]"
+                        className="w-full bg-secondary border-none p-4 outline-none font-bold text-primary min-h-[120px] resize-none"
                         placeholder={t("descriptionPlaceholder")}
+                      />
+                    </div>
+
+                    <div className="space-y-2">
+                      <label className="text-[11px] font-black uppercase tracking-widest text-primary">
+                        {t("dimensions")}
+                      </label>
+                      <input
+                        {...register("dimensions")}
+                        className="w-full bg-secondary border-none p-4 outline-none font-bold text-primary"
+                        placeholder={t("dimensionsPlaceholder")}
                       />
                     </div>
 
                     <div className="grid grid-cols-2 gap-4">
                       <div className="space-y-2">
-                        <label className="text-[11px] font-black uppercase tracking-widest text-primary ml-2">
-                          {t("deliveryTime")}
-                        </label>
-                        <input
-                          {...register("deliveryTime")}
-                          className="w-full bg-secondary border-none  p-4 outline-none font-bold text-primary"
-                          placeholder={t("deliveryTimePlaceholder")}
-                        />
-                      </div>
-                      <div className="space-y-2">
-                        <label className="text-[11px] font-black uppercase tracking-widest text-primary ml-2">
-                          {t("dimensions")}
-                        </label>
-                        <input
-                          {...register("dimensions")}
-                          className="w-full bg-secondary border-none  p-4 outline-none font-bold text-primary"
-                          placeholder={t("dimensionsPlaceholder")}
-                        />
-                      </div>
-                    </div>
-
-                    <div className="grid grid-cols-3 gap-4">
-                      <div className="space-y-2">
-                        <label className="text-[11px] font-black uppercase tracking-widest text-primary ml-2">
+                        <label className="text-[11px] font-black uppercase tracking-widest text-primary">
                           {t("weight")}
                         </label>
                         <input
@@ -691,19 +896,7 @@ export default function ProductsTable({
                         />
                       </div>
                       <div className="space-y-2">
-                        <label className="text-[11px] font-black uppercase tracking-widest text-primary ml-2">
-                          {t("cbm")}
-                        </label>
-                        <input
-                          type="number"
-                          step="0.01"
-                          {...register("cbm", { valueAsNumber: true })}
-                          className="w-full bg-secondary border-none p-4 outline-none font-bold text-primary"
-                          placeholder={t("cbmPlaceholder")}
-                        />
-                      </div>
-                      <div className="space-y-2">
-                        <label className="text-[11px] font-black uppercase tracking-widest text-primary ml-2">
+                        <label className="text-[11px] font-black uppercase tracking-widest text-primary">
                           {t("hsCode")}
                         </label>
                         <input
@@ -713,8 +906,60 @@ export default function ProductsTable({
                         />
                       </div>
                     </div>
+                  </div>
+                )}
 
-                    <div className="flex items-center gap-3 p-4 bg-secondary ">
+                {/* Step: Shipping (international only) */}
+                {currentStepId === "shipping" && (
+                  <div className="space-y-6">
+                    <div>
+                      <h3 className="text-lg font-black text-primary mb-1">Shipping Details</h3>
+                      <p className="text-sm text-text-dark/40">Required for international products</p>
+                    </div>
+
+                    <div className="p-4 bg-accent/5 border border-accent/20 flex items-start gap-3">
+                      <Ship size={16} className="text-accent shrink-0 mt-0.5" />
+                      <p className="text-xs text-text-dark/60 leading-relaxed">
+                        These details are required for customs clearance and logistics planning of international
+                        shipments.
+                      </p>
+                    </div>
+
+                    <div className="space-y-2">
+                      <label className="text-[11px] font-black uppercase tracking-widest text-primary">
+                        {t("cbm")} <span className="text-accent">*</span>
+                      </label>
+                      <input
+                        type="number"
+                        step="0.001"
+                        {...register("cbm", { required: t("cbmRequired"), valueAsNumber: true })}
+                        className="w-full bg-secondary border-none p-4 outline-none font-bold text-primary"
+                        placeholder={t("cbmPlaceholder")}
+                      />
+                    </div>
+
+                    <div className="space-y-2">
+                      <label className="text-[11px] font-black uppercase tracking-widest text-primary">
+                        {t("shippingTime")} <span className="text-accent">*</span>
+                      </label>
+                      <input
+                        {...register("deliveryTime", { required: t("shippingTimeRequired") })}
+                        className="w-full bg-secondary border-none p-4 outline-none font-bold text-primary"
+                        placeholder={t("shippingTimePlaceholder")}
+                      />
+                    </div>
+                  </div>
+                )}
+
+                {/* Step: Admin */}
+                {currentStepId === "admin" && (
+                  <div className="space-y-5">
+                    <div>
+                      <h3 className="text-lg font-black text-primary mb-1">Admin Settings</h3>
+                      <p className="text-sm text-text-dark/40">Visibility and URL configuration</p>
+                    </div>
+
+                    <div className="flex items-center gap-3 p-4 bg-secondary">
                       <input
                         type="checkbox"
                         {...register("isFeatured")}
@@ -730,34 +975,124 @@ export default function ProductsTable({
                     </div>
 
                     <div className="space-y-2">
-                      <label className="text-[11px] font-black uppercase tracking-widest text-primary ml-2">
+                      <label className="text-[11px] font-black uppercase tracking-widest text-primary">
                         {t("registrySlug")}
                       </label>
                       <input
                         {...register("slug")}
-                        className="w-full bg-secondary border-none  p-4 outline-none font-mono text-xs text-text-dark/50"
+                        className="w-full bg-secondary border-none p-4 outline-none font-mono text-xs text-text-dark/50"
                         placeholder={t("slugPlaceholder")}
                       />
                     </div>
                   </div>
-                </div>
+                )}
+
+                {/* Step: Review */}
+                {currentStepId === "review" && (
+                  <div className="space-y-4">
+                    <div>
+                      <h3 className="text-lg font-black text-primary mb-1">Review & Commit</h3>
+                      <p className="text-sm text-text-dark/40">Check details before saving to registry</p>
+                    </div>
+
+                    <div className="space-y-3">
+                      <div className="p-4 bg-secondary">
+                        <p className="text-[9px] font-black uppercase tracking-widest text-primary/40 mb-2">Type</p>
+                        <p className="font-bold text-primary capitalize">{formData.productType || "local"}</p>
+                      </div>
+
+                      <div className="p-4 bg-secondary">
+                        <p className="text-[9px] font-black uppercase tracking-widest text-primary/40 mb-2">Product</p>
+                        <p className="font-bold text-primary">{formData.name}</p>
+                        <p className="text-sm text-text-dark/40 mt-1">
+                          {formData.category} / {formData.subCategory}
+                        </p>
+                        <p className="text-xs text-text-dark/30 mt-0.5">{formData.brand}</p>
+                      </div>
+
+                      <div className="p-4 bg-secondary">
+                        <p className="text-[9px] font-black uppercase tracking-widest text-primary/40 mb-2">Pricing</p>
+                        <p className="font-black text-accent text-lg">{Number(formData.price).toLocaleString()} TND</p>
+                        {Number(formData.discountPrice) > 0 && (
+                          <p className="text-sm text-red-500 mt-0.5">
+                            {Number(formData.discountPrice).toLocaleString()} TND discounted
+                          </p>
+                        )}
+                        <p className="text-xs text-text-dark/40 mt-1">
+                          Stock: {formData.countInStock} {t("units")}
+                        </p>
+                      </div>
+
+                      {(sizes.length > 0 || colors.length > 0) && (
+                        <div className="p-4 bg-secondary">
+                          <p className="text-[9px] font-black uppercase tracking-widest text-primary/40 mb-2">
+                            Variants
+                          </p>
+                          {sizes.length > 0 && <p className="text-sm text-primary">Sizes: {sizes.join(", ")}</p>}
+                          {colors.length > 0 && (
+                            <p className="text-sm text-primary mt-1">Colors: {colors.join(", ")}</p>
+                          )}
+                        </div>
+                      )}
+
+                      {formData.productType === "international" && (
+                        <div className="p-4 bg-accent/5 border border-accent/20">
+                          <p className="text-[9px] font-black uppercase tracking-widest text-accent/60 mb-2">
+                            Shipping (International)
+                          </p>
+                          <p className="text-sm text-primary">CBM: {formData.cbm}</p>
+                          <p className="text-sm text-primary mt-1">Shipping Time: {formData.deliveryTime}</p>
+                        </div>
+                      )}
+
+                      <div className="p-4 bg-secondary">
+                        <p className="text-[9px] font-black uppercase tracking-widest text-primary/40 mb-2">Admin</p>
+                        <p className="text-sm text-primary">Featured: {formData.isFeatured ? "Yes" : "No"}</p>
+                        {formData.slug && <p className="text-xs text-text-dark/40 mt-1 font-mono">/{formData.slug}</p>}
+                      </div>
+                    </div>
+                  </div>
+                )}
               </div>
 
-              <div className="p-10 pt-6 border-t border-gray-50 flex gap-4 bg-white">
-                <button
-                  type="button"
-                  onClick={() => setShowModal(false)}
-                  className="flex-1 text-primary font-black uppercase text-[10px] tracking-widest py-6 hover:bg-secondary  transition-all cursor-pointer"
-                >
-                  {t("abortMission")}
-                </button>
-                <button
-                  type="submit"
-                  disabled={saving}
-                  className="flex-1 bg-primary text-white font-black uppercase text-[10px] tracking-widest py-6  shadow-xl hover:bg-black transition-all cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
-                >
-                  {saving ? t("committing") : t("commitToRegistry")}
-                </button>
+              {/* Navigation */}
+              <div className="px-8 py-5 border-t border-gray-100 flex gap-3 shrink-0 bg-white">
+                {safeStep > 0 ? (
+                  <button
+                    type="button"
+                    onClick={prevStep}
+                    className="flex items-center gap-2 px-6 py-4 text-primary font-black uppercase text-[10px] tracking-widest hover:bg-secondary transition-all cursor-pointer"
+                  >
+                    <ArrowLeft size={14} /> Back
+                  </button>
+                ) : (
+                  <button
+                    type="button"
+                    onClick={() => setShowModal(false)}
+                    className="flex-1 text-primary font-black uppercase text-[10px] tracking-widest py-4 hover:bg-secondary transition-all cursor-pointer"
+                  >
+                    {t("abortMission")}
+                  </button>
+                )}
+
+                {isLastStep ? (
+                  <button
+                    type="submit"
+                    disabled={saving}
+                    className="flex-1 bg-primary text-white font-black uppercase text-[10px] tracking-widest py-4 shadow-xl hover:bg-black transition-all cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
+                  >
+                    {saving ? t("committing") : t("commitToRegistry")}
+                  </button>
+                ) : (
+                  <button
+                    type="button"
+                    onClick={nextStep}
+                    disabled={!canProceed()}
+                    className="flex-1 bg-primary text-white font-black uppercase text-[10px] tracking-widest py-4 shadow-xl hover:bg-black transition-all cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+                  >
+                    Next <ArrowRight size={14} />
+                  </button>
+                )}
               </div>
             </form>
           </div>

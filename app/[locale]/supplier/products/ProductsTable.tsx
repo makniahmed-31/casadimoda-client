@@ -3,9 +3,28 @@
 import ImageUpload from "@/components/ImageUpload";
 import { Brand, Category, Product, SubCategory } from "@/types";
 import { apiFetch } from "@/utils/api";
-import { AlertCircle, CheckCircle, Clock, Edit, Package, Plus, Search, Trash2, X, XCircle } from "lucide-react";
+import {
+  AlertCircle,
+  ArrowLeft,
+  ArrowRight,
+  CheckCircle,
+  ChevronDown,
+  Clock,
+  Edit,
+  FileImage,
+  Globe,
+  Package,
+  Palette,
+  Plus,
+  Search,
+  Ship,
+  Tag,
+  Trash2,
+  X,
+  XCircle,
+} from "lucide-react";
 import Image from "next/image";
-import { useEffect, useState } from "react";
+import React, { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 
 interface ProductsResponse {
@@ -14,6 +33,16 @@ interface ProductsResponse {
   totalProducts: number;
   currentPage: number;
 }
+
+const ALL_STEPS = [
+  { id: "type", label: "Type", icon: Globe },
+  { id: "details", label: "Details", icon: Package },
+  { id: "variants", label: "Variants", icon: Palette },
+  { id: "pricing", label: "Pricing", icon: Tag },
+  { id: "media", label: "Media", icon: FileImage },
+  { id: "shipping", label: "Shipping", icon: Ship },
+  { id: "review", label: "Review", icon: CheckCircle },
+];
 
 export default function SupplierProductsTable({
   subCategories,
@@ -35,15 +64,46 @@ export default function SupplierProductsTable({
   const [statusFilter, setStatusFilter] = useState("all");
   const [supplierStatus, setSupplierStatus] = useState<string | null>(null);
   const [sizes, setSizes] = useState<string[]>([]);
-  const [sizeInput, setSizeInput] = useState("");
+  const [selectedSize, setSelectedSize] = useState("");
   const [colors, setColors] = useState<string[]>([]);
   const [colorImages, setColorImages] = useState<Record<string, string>>({});
+  const [primaryColor, setPrimaryColor] = useState("");
   const [dbColors, setDbColors] = useState<{ _id: string; name: string; hex: string }[]>([]);
   const [selectedDbColor, setSelectedDbColor] = useState("");
+  const [currentStep, setCurrentStep] = useState(0);
 
   const { register, handleSubmit, reset, setValue, watch } = useForm<Product>();
   const selectedCategory = watch("category");
-  const watchedImage = watch("image");
+  const productType = watch("productType");
+  const formData = watch();
+
+  const steps = ALL_STEPS.filter((s) => s.id !== "shipping" || productType === "international");
+  const totalSteps = steps.length;
+  const safeStep = Math.min(currentStep, totalSteps - 1);
+  const currentStepId = steps[safeStep]?.id ?? "type";
+  const isLastStep = safeStep === totalSteps - 1;
+
+  const nextStep = () => setCurrentStep((s) => Math.min(s + 1, totalSteps - 1));
+  const prevStep = () => setCurrentStep((s) => Math.max(s - 1, 0));
+
+  const canProceed = (): boolean => {
+    switch (currentStepId) {
+      case "type":
+        return true;
+      case "details":
+        return !!formData.name && !!formData.category && !!formData.subCategory && !!formData.brand;
+      case "variants":
+        return true;
+      case "pricing":
+        return Number(formData.price) > 0;
+      case "media":
+        return !!formData.description;
+      case "shipping":
+        return !!(formData.cbm && Number(formData.cbm) > 0 && formData.deliveryTime);
+      default:
+        return true;
+    }
+  };
 
   useEffect(() => {
     const fetchStatus = async () => {
@@ -113,6 +173,7 @@ export default function SupplierProductsTable({
       alert("Your account must be approved before you can add products.");
       return;
     }
+    setCurrentStep(0);
     if (product) {
       setEditingProduct(product);
       Object.keys(product).forEach((key) => {
@@ -125,6 +186,11 @@ export default function SupplierProductsTable({
         ci[color] = image;
       });
       setColorImages(ci);
+      const matchedPrimary =
+        (product.colorImages || []).find((ci) => ci.image === product.image)?.color ||
+        product.colorImages?.[0]?.color ||
+        "";
+      setPrimaryColor(matchedPrimary);
     } else {
       setEditingProduct(null);
       reset({
@@ -137,19 +203,18 @@ export default function SupplierProductsTable({
         discountPrice: 0,
         countInStock: 0,
         description: "",
-        deliveryTime: "",
         dimensions: "",
         weight: "",
-        cbm: 0,
         hsCode: "",
-        image: "",
         parentCategory: "detail",
+        productType: "local",
       });
       setSizes([]);
       setColors([]);
       setColorImages({});
+      setPrimaryColor("");
     }
-    setSizeInput("");
+    setSelectedSize("");
     setSelectedDbColor("");
     setShowModal(true);
   };
@@ -175,7 +240,9 @@ export default function SupplierProductsTable({
         image: colorImages[color],
         hex: dbColors.find((c) => c.name === color)?.hex || "",
       }));
-    const primaryImage = colors.length > 0 && colorImages[colors[0]] ? colorImages[colors[0]] : data.image || "";
+    const primaryImage =
+      (primaryColor && colorImages[primaryColor]) ||
+      (colors.find((c) => colorImages[c]) ? colorImages[colors.find((c) => colorImages[c])!] : "");
     const body = editingProduct
       ? { ...data, _id: editingProduct._id, image: primaryImage, sizes, colors, colorImages: colorImagesArray }
       : { ...data, image: primaryImage, sizes, colors, colorImages: colorImagesArray };
@@ -274,7 +341,6 @@ export default function SupplierProductsTable({
         </button>
       </div>
 
-      {/* Account Status Warning */}
       {!isApproved && (
         <div className="bg-yellow-500/10 border border-yellow-500/20 p-4 flex items-center gap-3">
           <AlertCircle size={16} className="text-yellow-400 shrink-0" />
@@ -284,9 +350,8 @@ export default function SupplierProductsTable({
         </div>
       )}
 
-      {/* Table Card */}
+      {/* Table */}
       <div className="bg-white/5 border border-white/10 overflow-hidden">
-        {/* Filters */}
         <div className="flex flex-col md:flex-row gap-4 p-5 border-b border-white/10">
           <div className="relative flex-grow">
             <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-white/20" size={15} />
@@ -297,24 +362,30 @@ export default function SupplierProductsTable({
               onChange={handleSearchChange}
             />
           </div>
-          <select
-            value={statusFilter}
-            onChange={(e) => setStatusFilter(e.target.value)}
-            className="bg-white/5 border border-white/10 focus:border-accent px-4 py-2.5 text-sm text-white outline-none font-bold appearance-none cursor-pointer transition-all"
-          >
-            <option value="all" className="bg-primary">
-              All Status
-            </option>
-            <option value="approved" className="bg-primary">
-              Approved
-            </option>
-            <option value="pending" className="bg-primary">
-              Pending
-            </option>
-            <option value="rejected" className="bg-primary">
-              Rejected
-            </option>
-          </select>
+          <div className="relative">
+            <select
+              value={statusFilter}
+              onChange={(e) => setStatusFilter(e.target.value)}
+              className="bg-white/5 border border-white/10 focus:border-accent pl-4 pr-10 py-2.5 text-sm text-white outline-none font-bold appearance-none cursor-pointer transition-all"
+            >
+              <option value="all" className="bg-primary">
+                All Status
+              </option>
+              <option value="approved" className="bg-primary">
+                Approved
+              </option>
+              <option value="pending" className="bg-primary">
+                Pending
+              </option>
+              <option value="rejected" className="bg-primary">
+                Rejected
+              </option>
+            </select>
+            <ChevronDown
+              size={14}
+              className="absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none text-white/40"
+            />
+          </div>
         </div>
 
         {loading ? (
@@ -403,22 +474,14 @@ export default function SupplierProductsTable({
                           <button
                             onClick={() => openModal(product)}
                             disabled={!isApproved}
-                            className={`p-2 border transition-all ${
-                              isApproved
-                                ? "border-white/20 text-white/50 hover:border-accent hover:text-accent cursor-pointer"
-                                : "border-white/5 text-white/10 cursor-not-allowed"
-                            }`}
+                            className={`p-2 border transition-all ${isApproved ? "border-white/20 text-white/50 hover:border-accent hover:text-accent cursor-pointer" : "border-white/5 text-white/10 cursor-not-allowed"}`}
                           >
                             <Edit size={14} />
                           </button>
                           <button
                             onClick={() => deleteProduct(product._id)}
                             disabled={!isApproved}
-                            className={`p-2 border transition-all ${
-                              isApproved
-                                ? "border-white/20 text-white/50 hover:border-red-500 hover:text-red-400 cursor-pointer"
-                                : "border-white/5 text-white/10 cursor-not-allowed"
-                            }`}
+                            className={`p-2 border transition-all ${isApproved ? "border-white/20 text-white/50 hover:border-red-500 hover:text-red-400 cursor-pointer" : "border-white/5 text-white/10 cursor-not-allowed"}`}
                           >
                             <Trash2 size={14} />
                           </button>
@@ -469,14 +532,20 @@ export default function SupplierProductsTable({
         )}
       </div>
 
-      {/* Product Modal */}
+      {/* Product Modal — Stepper */}
       {showModal && (
         <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-[100] flex items-center justify-center p-4">
-          <div className="bg-primary border border-white/10 w-full max-w-4xl shadow-2xl max-h-[90vh] flex flex-col overflow-hidden">
-            <div className="px-8 py-6 border-b border-white/10 flex justify-between items-center">
-              <h2 className="text-xl font-black text-white tracking-tight">
-                {editingProduct ? "Edit Product" : "Add New Product"}
-              </h2>
+          <div className="bg-primary border border-white/10 w-full max-w-2xl shadow-2xl max-h-[90vh] flex flex-col overflow-hidden">
+            {/* Header */}
+            <div className="px-8 py-5 border-b border-white/10 flex justify-between items-center shrink-0">
+              <div>
+                <h2 className="text-xl font-black text-white tracking-tight">
+                  {editingProduct ? "Edit Product" : "Add New Product"}
+                </h2>
+                <p className="text-[9px] font-bold uppercase tracking-widest text-white/30 mt-0.5">
+                  Step {safeStep + 1} of {totalSteps} — {steps[safeStep].label}
+                </p>
+              </div>
               <button
                 onClick={() => setShowModal(false)}
                 className="p-2 text-white/40 hover:text-white hover:bg-white/10 transition-all cursor-pointer"
@@ -485,17 +554,100 @@ export default function SupplierProductsTable({
               </button>
             </div>
 
-            <div className="mx-8 mt-4 p-4 bg-blue-500/10 border border-blue-500/20">
-              <p className="text-sm text-blue-400 font-bold">
-                New products and significant edits require admin approval before they appear on the store.
-              </p>
+            {/* Progress */}
+            <div className="px-8 py-4 border-b border-white/10 shrink-0">
+              <div className="flex items-center">
+                {steps.map((step, index) => (
+                  <React.Fragment key={step.id}>
+                    <div className="flex flex-col items-center shrink-0">
+                      <div
+                        className={`w-7 h-7 rounded-full flex items-center justify-center transition-all ${
+                          index < safeStep
+                            ? "bg-accent text-primary"
+                            : index === safeStep
+                              ? "bg-accent text-primary ring-4 ring-accent/20"
+                              : "bg-white/10 text-white/30"
+                        }`}
+                      >
+                        <step.icon size={12} />
+                      </div>
+                      <span
+                        className={`text-[8px] font-bold uppercase tracking-widest mt-1 ${
+                          index <= safeStep ? "text-accent" : "text-white/20"
+                        }`}
+                      >
+                        {step.label}
+                      </span>
+                    </div>
+                    {index < steps.length - 1 && (
+                      <div
+                        className={`flex-1 h-px mx-2 transition-all ${index < safeStep ? "bg-accent" : "bg-white/10"}`}
+                      />
+                    )}
+                  </React.Fragment>
+                ))}
+              </div>
             </div>
 
             <form onSubmit={handleSubmit(onSubmit)} className="flex flex-col flex-grow overflow-hidden">
-              <div className="flex-grow overflow-y-auto p-8 pt-6 space-y-6">
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-                  {/* Left */}
+              <div className="flex-grow overflow-y-auto p-8 space-y-6">
+                {/* Step: Type */}
+                {currentStepId === "type" && (
+                  <div className="space-y-6">
+                    <div>
+                      <h3 className="text-lg font-black text-white mb-1">Product Type</h3>
+                      <p className="text-sm text-white/40">Is this a local or international product?</p>
+                    </div>
+                    <input type="hidden" {...register("productType")} />
+                    <div className="grid grid-cols-2 gap-4">
+                      <button
+                        type="button"
+                        onClick={() => setValue("productType", "local")}
+                        className={`p-6 border-2 text-left transition-all cursor-pointer ${
+                          productType !== "international"
+                            ? "border-accent bg-accent/10"
+                            : "border-white/10 hover:border-white/30"
+                        }`}
+                      >
+                        <Package
+                          size={28}
+                          className={productType !== "international" ? "text-accent" : "text-white/30"}
+                        />
+                        <p className="font-black text-white mt-4 text-base">Local</p>
+                        <p className="text-xs text-white/40 mt-1 leading-relaxed">
+                          Products sourced and shipped locally within the country
+                        </p>
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => setValue("productType", "international")}
+                        className={`p-6 border-2 text-left transition-all cursor-pointer ${
+                          productType === "international"
+                            ? "border-accent bg-accent/10"
+                            : "border-white/10 hover:border-white/30"
+                        }`}
+                      >
+                        <Globe
+                          size={28}
+                          className={productType === "international" ? "text-accent" : "text-white/30"}
+                        />
+                        <p className="font-black text-white mt-4 text-base">International</p>
+                        <p className="text-xs text-white/40 mt-1 leading-relaxed">
+                          Imported products — requires CBM and shipping time
+                        </p>
+                      </button>
+                    </div>
+                  </div>
+                )}
+
+                {/* Step: Details */}
+                {currentStepId === "details" && (
                   <div className="space-y-5">
+                    <div>
+                      <h3 className="text-lg font-black text-white mb-1">Product Details</h3>
+                      <p className="text-sm text-white/40">Basic product information</p>
+                    </div>
+
                     <div className="space-y-2">
                       <label className="text-[9px] font-black uppercase tracking-widest text-white/30">
                         Product Name *
@@ -512,101 +664,153 @@ export default function SupplierProductsTable({
                         <label className="text-[9px] font-black uppercase tracking-widest text-white/30">
                           Category *
                         </label>
-                        <select
-                          {...register("category", { required: true })}
-                          className="w-full bg-white/5 border border-white/10 focus:border-accent p-3 text-sm text-white outline-none appearance-none transition-all"
-                        >
-                          <option value="" className="bg-primary">
-                            Select...
-                          </option>
-                          {categories.map((cat) => (
-                            <option key={cat._id} value={cat.name} className="bg-primary">
-                              {cat.name}
+                        <div className="relative">
+                          <select
+                            {...register("category", { required: true })}
+                            className="w-full bg-white/5 border border-white/10 focus:border-accent p-3 pr-10 text-sm text-white outline-none appearance-none transition-all cursor-pointer"
+                          >
+                            <option value="" className="bg-primary">
+                              Select...
                             </option>
-                          ))}
-                        </select>
+                            {categories.map((cat) => (
+                              <option key={cat._id} value={cat.name} className="bg-primary">
+                                {cat.name}
+                              </option>
+                            ))}
+                          </select>
+                          <ChevronDown
+                            size={14}
+                            className="absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none text-white/40"
+                          />
+                        </div>
                       </div>
                       <div className="space-y-2">
                         <label className="text-[9px] font-black uppercase tracking-widest text-white/30">
                           SubCategory *
                         </label>
-                        <select
-                          {...register("subCategory", { required: true })}
-                          className="w-full bg-white/5 border border-white/10 focus:border-accent p-3 text-sm text-white outline-none appearance-none transition-all"
-                        >
-                          <option value="" className="bg-primary">
-                            Select...
-                          </option>
-                          {subCategories
-                            .filter((sub) => !selectedCategory || sub.parentCategory === selectedCategory)
-                            .map((sub) => (
-                              <option key={sub._id} value={sub.name} className="bg-primary">
-                                {sub.name}
-                              </option>
-                            ))}
-                        </select>
+                        <div className="relative">
+                          <select
+                            {...register("subCategory", { required: true })}
+                            className="w-full bg-white/5 border border-white/10 focus:border-accent p-3 pr-10 text-sm text-white outline-none appearance-none transition-all cursor-pointer"
+                          >
+                            <option value="" className="bg-primary">
+                              Select...
+                            </option>
+                            {subCategories
+                              .filter((sub) => !selectedCategory || sub.parentCategory === selectedCategory)
+                              .map((sub) => (
+                                <option key={sub._id} value={sub.name} className="bg-primary">
+                                  {sub.name}
+                                </option>
+                              ))}
+                          </select>
+                          <ChevronDown
+                            size={14}
+                            className="absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none text-white/40"
+                          />
+                        </div>
                       </div>
                     </div>
 
-                    <div className="space-y-2">
-                      <label className="text-[9px] font-black uppercase tracking-widest text-white/30">Brand *</label>
-                      <select
-                        {...register("brand", { required: true })}
-                        className="w-full bg-white/5 border border-white/10 focus:border-accent p-3 text-sm text-white outline-none appearance-none transition-all"
-                      >
-                        <option value="" className="bg-primary">
-                          Select brand...
-                        </option>
-                        {brands.map((brand) => (
-                          <option key={brand._id} value={brand.name} className="bg-primary">
-                            {brand.name}
-                          </option>
-                        ))}
-                      </select>
+                    <div className="grid grid-cols-2 gap-4">
+                      <div className="space-y-2">
+                        <label className="text-[9px] font-black uppercase tracking-widest text-white/30">Brand *</label>
+                        <div className="relative">
+                          <select
+                            {...register("brand", { required: true })}
+                            className="w-full bg-white/5 border border-white/10 focus:border-accent p-3 pr-10 text-sm text-white outline-none appearance-none transition-all cursor-pointer"
+                          >
+                            <option value="" className="bg-primary">
+                              Select brand...
+                            </option>
+                            {brands.map((brand) => (
+                              <option key={brand._id} value={brand.name} className="bg-primary">
+                                {brand.name}
+                              </option>
+                            ))}
+                          </select>
+                          <ChevronDown
+                            size={14}
+                            className="absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none text-white/40"
+                          />
+                        </div>
+                      </div>
+                      <div className="space-y-2">
+                        <label className="text-[9px] font-black uppercase tracking-widest text-white/30">
+                          Parent Category *
+                        </label>
+                        <div className="relative">
+                          <select
+                            {...register("parentCategory", { required: true })}
+                            className="w-full bg-white/5 border border-white/10 focus:border-accent p-3 pr-10 text-sm text-white outline-none appearance-none transition-all cursor-pointer"
+                          >
+                            <option value="detail" className="bg-primary">
+                              Detail
+                            </option>
+                            <option value="gros" className="bg-primary">
+                              Gros
+                            </option>
+                          </select>
+                          <ChevronDown
+                            size={14}
+                            className="absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none text-white/40"
+                          />
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                )}
+
+                {/* Step: Variants */}
+                {currentStepId === "variants" && (
+                  <div className="space-y-5">
+                    <div>
+                      <h3 className="text-lg font-black text-white mb-1">Variants</h3>
+                      <p className="text-sm text-white/40">Add sizes and colors (optional)</p>
                     </div>
 
-                    <div className="space-y-2">
-                      <label className="text-[9px] font-black uppercase tracking-widest text-white/30">
-                        Parent Category *
-                      </label>
-                      <select
-                        {...register("parentCategory", { required: true })}
-                        className="w-full bg-white/5 border border-white/10 focus:border-accent p-3 text-sm text-white outline-none appearance-none transition-all"
-                      >
-                        <option value="detail" className="bg-primary">
-                          Detail
-                        </option>
-                        <option value="gros" className="bg-primary">
-                          Gros
-                        </option>
-                      </select>
-                    </div>
-
-                    {/* Sizes */}
                     <div className="space-y-2">
                       <label className="text-[9px] font-black uppercase tracking-widest text-white/30">Sizes</label>
                       <div className="flex gap-2">
-                        <input
-                          value={sizeInput}
-                          onChange={(e) => setSizeInput(e.target.value)}
-                          onKeyDown={(e) => {
-                            if (e.key === "Enter") {
-                              e.preventDefault();
-                              if (sizeInput.trim() && !sizes.includes(sizeInput.trim())) {
-                                setSizes([...sizes, sizeInput.trim()]);
-                                setSizeInput("");
-                              }
-                            }
-                          }}
-                          className="flex-1 bg-white/5 border border-white/10 focus:border-accent p-3 text-sm text-white placeholder:text-white/20 outline-none transition-all"
-                          placeholder="e.g. S, M, L, XL"
-                        />
+                        <div className="relative flex-1">
+                          <select
+                            value={selectedSize}
+                            onChange={(e) => setSelectedSize(e.target.value)}
+                            className="w-full bg-white/5 border border-white/10 focus:border-accent p-3 pr-10 text-sm text-white outline-none appearance-none transition-all cursor-pointer"
+                          >
+                            <option value="" className="bg-primary">
+                              — Select a size —
+                            </option>
+                            <optgroup label="Clothing" className="bg-primary">
+                              {["XS", "S", "M", "L", "XL", "XXL", "XXXL"]
+                                .filter((s) => !sizes.includes(s))
+                                .map((s) => (
+                                  <option key={s} value={s} className="bg-primary">
+                                    {s}
+                                  </option>
+                                ))}
+                            </optgroup>
+                            <optgroup label="Shoes (EU)" className="bg-primary">
+                              {["35", "36", "37", "38", "39", "40", "41", "42", "43", "44", "45", "46", "47"]
+                                .filter((s) => !sizes.includes(s))
+                                .map((s) => (
+                                  <option key={s} value={s} className="bg-primary">
+                                    {s}
+                                  </option>
+                                ))}
+                            </optgroup>
+                          </select>
+                          <ChevronDown
+                            size={14}
+                            className="absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none text-white/40"
+                          />
+                        </div>
                         <button
                           type="button"
                           onClick={() => {
-                            if (sizeInput.trim() && !sizes.includes(sizeInput.trim())) {
-                              setSizes([...sizes, sizeInput.trim()]);
-                              setSizeInput("");
+                            if (selectedSize && !sizes.includes(selectedSize)) {
+                              setSizes([...sizes, selectedSize]);
+                              setSelectedSize("");
                             }
                           }}
                           className="bg-accent/10 text-accent px-4 hover:bg-accent/20 transition-all cursor-pointer"
@@ -635,26 +839,31 @@ export default function SupplierProductsTable({
                       )}
                     </div>
 
-                    {/* Colors */}
                     <div className="space-y-2">
                       <label className="text-[9px] font-black uppercase tracking-widest text-white/30">Colors</label>
                       <div className="flex gap-2">
-                        <select
-                          value={selectedDbColor}
-                          onChange={(e) => setSelectedDbColor(e.target.value)}
-                          className="flex-1 bg-white/5 border border-white/10 focus:border-accent p-3 text-sm text-white outline-none appearance-none transition-all"
-                        >
-                          <option value="" className="bg-primary">
-                            — Select a color —
-                          </option>
-                          {dbColors
-                            .filter((c) => !colors.includes(c.name))
-                            .map((c) => (
-                              <option key={c._id} value={c.name} className="bg-primary">
-                                {c.name} ({c.hex})
-                              </option>
-                            ))}
-                        </select>
+                        <div className="relative flex-1">
+                          <select
+                            value={selectedDbColor}
+                            onChange={(e) => setSelectedDbColor(e.target.value)}
+                            className="w-full bg-white/5 border border-white/10 focus:border-accent p-3 pr-10 text-sm text-white outline-none appearance-none transition-all cursor-pointer"
+                          >
+                            <option value="" className="bg-primary">
+                              — Select a color —
+                            </option>
+                            {dbColors
+                              .filter((c) => !colors.includes(c.name))
+                              .map((c) => (
+                                <option key={c._id} value={c.name} className="bg-primary">
+                                  {c.name} ({c.hex})
+                                </option>
+                              ))}
+                          </select>
+                          <ChevronDown
+                            size={14}
+                            className="absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none text-white/40"
+                          />
+                        </div>
                         <button
                           type="button"
                           onClick={() => {
@@ -677,13 +886,45 @@ export default function SupplierProductsTable({
                             >
                               <span className="flex-1 text-white font-bold text-xs">{color}</span>
                               {colorImages[color] && (
-                                <div className="relative w-8 h-8 overflow-hidden border border-white/10 shrink-0">
-                                  {/* eslint-disable-next-line @next/next/no-img-element */}
-                                  <img src={colorImages[color]} alt={color} className="w-full h-full object-cover" />
+                                <div className="relative shrink-0">
+                                  <div className="w-8 h-8 overflow-hidden border border-white/10">
+                                    {/* eslint-disable-next-line @next/next/no-img-element */}
+                                    <img src={colorImages[color]} alt={color} className="w-full h-full object-cover" />
+                                  </div>
+                                  <button
+                                    type="button"
+                                    onClick={() =>
+                                      setColorImages((prev) => {
+                                        const n = { ...prev };
+                                        delete n[color];
+                                        if (primaryColor === color) setPrimaryColor("");
+                                        return n;
+                                      })
+                                    }
+                                    className="absolute -top-1.5 -right-1.5 w-4 h-4 bg-red-500 text-white flex items-center justify-center rounded-full cursor-pointer hover:bg-red-600 transition-colors"
+                                  >
+                                    <X size={9} />
+                                  </button>
                                 </div>
                               )}
+                              {colorImages[color] && (
+                                <button
+                                  type="button"
+                                  onClick={() => setPrimaryColor(color)}
+                                  className={`text-[9px] font-black uppercase tracking-widest px-2 py-1 border transition-all cursor-pointer shrink-0 ${
+                                    primaryColor === color
+                                      ? "bg-accent text-primary border-accent"
+                                      : "border-white/20 text-white/30 hover:border-accent/50 hover:text-white/60"
+                                  }`}
+                                >
+                                  {primaryColor === color ? "✓ Cover" : "Cover"}
+                                </button>
+                              )}
                               <ImageUpload
-                                onSuccess={(url) => setColorImages((prev) => ({ ...prev, [color]: url }))}
+                                onSuccess={(url) => {
+                                  setColorImages((prev) => ({ ...prev, [color]: url }));
+                                  if (!primaryColor) setPrimaryColor(color);
+                                }}
                                 label={colorImages[color] ? "Change" : "Image"}
                                 buttonClassName="text-[9px] font-black uppercase tracking-widest text-accent border border-accent/30 px-2 py-1 hover:bg-accent/10 transition-all cursor-pointer shrink-0"
                               />
@@ -706,61 +947,59 @@ export default function SupplierProductsTable({
                         </div>
                       )}
                     </div>
-
-                    <div className="grid grid-cols-3 gap-4">
-                      <div className="space-y-2">
-                        <label className="text-[9px] font-black uppercase tracking-widest text-white/30">Price *</label>
-                        <input
-                          type="number"
-                          {...register("price", { required: true })}
-                          className="w-full bg-white/5 border border-white/10 focus:border-accent p-3 text-sm text-white outline-none transition-all"
-                          placeholder="0"
-                        />
-                      </div>
-                      <div className="space-y-2">
-                        <label className="text-[9px] font-black uppercase tracking-widest text-white/30">
-                          Discount
-                        </label>
-                        <input
-                          type="number"
-                          {...register("discountPrice")}
-                          className="w-full bg-white/5 border border-white/10 focus:border-accent p-3 text-sm text-red-400 outline-none transition-all"
-                          placeholder="Optional"
-                        />
-                      </div>
-                      <div className="space-y-2">
-                        <label className="text-[9px] font-black uppercase tracking-widest text-white/30">Stock *</label>
-                        <input
-                          type="number"
-                          {...register("countInStock", { required: true })}
-                          className="w-full bg-white/5 border border-white/10 focus:border-accent p-3 text-sm text-white outline-none transition-all"
-                          placeholder="0"
-                        />
-                      </div>
-                    </div>
                   </div>
+                )}
 
-                  {/* Right */}
+                {/* Step: Pricing */}
+                {currentStepId === "pricing" && (
                   <div className="space-y-5">
+                    <div>
+                      <h3 className="text-lg font-black text-white mb-1">Pricing & Stock</h3>
+                      <p className="text-sm text-white/40">Set price and inventory levels</p>
+                    </div>
+
                     <div className="space-y-2">
                       <label className="text-[9px] font-black uppercase tracking-widest text-white/30">
-                        Primary Image
+                        Price (TND) *
                       </label>
-                      <div className="flex items-center gap-3">
-                        {watchedImage && (
-                          // eslint-disable-next-line @next/next/no-img-element
-                          <img
-                            src={watchedImage}
-                            alt="preview"
-                            className="w-10 h-12 object-cover border border-white/10 shrink-0"
-                          />
-                        )}
-                        <ImageUpload
-                          onSuccess={(url) => setValue("image", url)}
-                          label={watchedImage ? "Change Image" : "Upload Image"}
-                          buttonClassName="text-[9px] font-black uppercase tracking-widest text-accent border border-accent/30 px-3 py-2 hover:bg-accent/10 transition-all cursor-pointer shrink-0"
-                        />
-                      </div>
+                      <input
+                        type="number"
+                        {...register("price", { required: true })}
+                        className="w-full bg-white/5 border border-white/10 focus:border-accent p-3 text-sm text-white outline-none transition-all"
+                        placeholder="0"
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <label className="text-[9px] font-black uppercase tracking-widest text-white/30">
+                        Discount Price (TND)
+                      </label>
+                      <input
+                        type="number"
+                        {...register("discountPrice")}
+                        className="w-full bg-white/5 border border-white/10 focus:border-accent p-3 text-sm text-red-400 outline-none transition-all"
+                        placeholder="Optional"
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <label className="text-[9px] font-black uppercase tracking-widest text-white/30">
+                        Stock Count *
+                      </label>
+                      <input
+                        type="number"
+                        {...register("countInStock", { required: true })}
+                        className="w-full bg-white/5 border border-white/10 focus:border-accent p-3 text-sm text-white outline-none transition-all"
+                        placeholder="0"
+                      />
+                    </div>
+                  </div>
+                )}
+
+                {/* Step: Media */}
+                {currentStepId === "media" && (
+                  <div className="space-y-5">
+                    <div>
+                      <h3 className="text-lg font-black text-white mb-1">Media & Details</h3>
+                      <p className="text-sm text-white/40">Product image, description and physical specs</p>
                     </div>
 
                     <div className="space-y-2">
@@ -774,46 +1013,24 @@ export default function SupplierProductsTable({
                       />
                     </div>
 
-                    <div className="grid grid-cols-2 gap-4">
-                      <div className="space-y-2">
-                        <label className="text-[9px] font-black uppercase tracking-widest text-white/30">
-                          Delivery Time
-                        </label>
-                        <input
-                          {...register("deliveryTime")}
-                          className="w-full bg-white/5 border border-white/10 focus:border-accent p-3 text-sm text-white placeholder:text-white/20 outline-none transition-all"
-                          placeholder="e.g. 3-5 days"
-                        />
-                      </div>
-                      <div className="space-y-2">
-                        <label className="text-[9px] font-black uppercase tracking-widest text-white/30">
-                          Dimensions
-                        </label>
-                        <input
-                          {...register("dimensions")}
-                          className="w-full bg-white/5 border border-white/10 focus:border-accent p-3 text-sm text-white placeholder:text-white/20 outline-none transition-all"
-                          placeholder="e.g. 20x30x10 cm"
-                        />
-                      </div>
+                    <div className="space-y-2">
+                      <label className="text-[9px] font-black uppercase tracking-widest text-white/30">
+                        Dimensions
+                      </label>
+                      <input
+                        {...register("dimensions")}
+                        className="w-full bg-white/5 border border-white/10 focus:border-accent p-3 text-sm text-white placeholder:text-white/20 outline-none transition-all"
+                        placeholder="e.g. 20x30x10 cm"
+                      />
                     </div>
 
-                    <div className="grid grid-cols-3 gap-4">
+                    <div className="grid grid-cols-2 gap-4">
                       <div className="space-y-2">
                         <label className="text-[9px] font-black uppercase tracking-widest text-white/30">Weight</label>
                         <input
                           {...register("weight")}
                           className="w-full bg-white/5 border border-white/10 focus:border-accent p-3 text-sm text-white placeholder:text-white/20 outline-none transition-all"
                           placeholder="e.g. 1.5 kg"
-                        />
-                      </div>
-                      <div className="space-y-2">
-                        <label className="text-[9px] font-black uppercase tracking-widest text-white/30">CBM</label>
-                        <input
-                          type="number"
-                          step="0.01"
-                          {...register("cbm", { valueAsNumber: true })}
-                          className="w-full bg-white/5 border border-white/10 focus:border-accent p-3 text-sm text-white outline-none transition-all"
-                          placeholder="e.g. 0.5"
                         />
                       </div>
                       <div className="space-y-2">
@@ -826,24 +1043,155 @@ export default function SupplierProductsTable({
                       </div>
                     </div>
                   </div>
-                </div>
+                )}
+
+                {/* Step: Shipping (international only) */}
+                {currentStepId === "shipping" && (
+                  <div className="space-y-6">
+                    <div>
+                      <h3 className="text-lg font-black text-white mb-1">Shipping Details</h3>
+                      <p className="text-sm text-white/40">Required for international products</p>
+                    </div>
+
+                    <div className="p-4 bg-accent/5 border border-accent/20 flex items-start gap-3">
+                      <Ship size={16} className="text-accent shrink-0 mt-0.5" />
+                      <p className="text-xs text-white/60 leading-relaxed">
+                        These details are required for customs clearance and logistics planning of international
+                        shipments.
+                      </p>
+                    </div>
+
+                    <div className="space-y-2">
+                      <label className="text-[9px] font-black uppercase tracking-widest text-white/30">
+                        CBM — Cubic Meter Volume <span className="text-accent">*</span>
+                      </label>
+                      <input
+                        type="number"
+                        step="0.001"
+                        {...register("cbm", {
+                          required: "CBM is required for international products",
+                          valueAsNumber: true,
+                        })}
+                        className="w-full bg-white/5 border border-white/10 focus:border-accent p-3 text-sm text-white outline-none transition-all"
+                        placeholder="e.g. 0.5"
+                      />
+                    </div>
+
+                    <div className="space-y-2">
+                      <label className="text-[9px] font-black uppercase tracking-widest text-white/30">
+                        Shipping Time <span className="text-accent">*</span>
+                      </label>
+                      <input
+                        {...register("deliveryTime", {
+                          required: "Shipping time is required for international products",
+                        })}
+                        className="w-full bg-white/5 border border-white/10 focus:border-accent p-3 text-sm text-white placeholder:text-white/20 outline-none transition-all"
+                        placeholder="e.g. 15-30 days"
+                      />
+                    </div>
+                  </div>
+                )}
+
+                {/* Step: Review */}
+                {currentStepId === "review" && (
+                  <div className="space-y-4">
+                    <div>
+                      <h3 className="text-lg font-black text-white mb-1">Review & Submit</h3>
+                      <p className="text-sm text-white/40">Check your product details before submitting</p>
+                    </div>
+
+                    <div className="p-4 bg-blue-500/10 border border-blue-500/20">
+                      <p className="text-xs text-blue-400 font-bold">
+                        New products and significant edits require admin approval before appearing on the store.
+                      </p>
+                    </div>
+
+                    <div className="space-y-3">
+                      <div className="p-4 bg-white/5 border border-white/10">
+                        <p className="text-[9px] font-black uppercase tracking-widest text-white/30 mb-2">Type</p>
+                        <p className="font-bold text-white capitalize">{formData.productType || "local"}</p>
+                      </div>
+
+                      <div className="p-4 bg-white/5 border border-white/10">
+                        <p className="text-[9px] font-black uppercase tracking-widest text-white/30 mb-2">Product</p>
+                        <p className="font-bold text-white">{formData.name}</p>
+                        <p className="text-sm text-white/40 mt-1">
+                          {formData.category} / {formData.subCategory}
+                        </p>
+                        <p className="text-xs text-white/30 mt-0.5">{formData.brand}</p>
+                      </div>
+
+                      <div className="p-4 bg-white/5 border border-white/10">
+                        <p className="text-[9px] font-black uppercase tracking-widest text-white/30 mb-2">Pricing</p>
+                        <p className="font-black text-accent">{Number(formData.price).toLocaleString()} TND</p>
+                        {Number(formData.discountPrice) > 0 && (
+                          <p className="text-sm text-red-400 mt-0.5">
+                            {Number(formData.discountPrice).toLocaleString()} TND discounted
+                          </p>
+                        )}
+                        <p className="text-xs text-white/40 mt-1">Stock: {formData.countInStock} units</p>
+                      </div>
+
+                      {(sizes.length > 0 || colors.length > 0) && (
+                        <div className="p-4 bg-white/5 border border-white/10">
+                          <p className="text-[9px] font-black uppercase tracking-widest text-white/30 mb-2">Variants</p>
+                          {sizes.length > 0 && <p className="text-sm text-white">Sizes: {sizes.join(", ")}</p>}
+                          {colors.length > 0 && <p className="text-sm text-white mt-1">Colors: {colors.join(", ")}</p>}
+                        </div>
+                      )}
+
+                      {formData.productType === "international" && (
+                        <div className="p-4 bg-accent/5 border border-accent/20">
+                          <p className="text-[9px] font-black uppercase tracking-widest text-accent/60 mb-2">
+                            Shipping (International)
+                          </p>
+                          <p className="text-sm text-white">CBM: {formData.cbm}</p>
+                          <p className="text-sm text-white mt-1">Shipping Time: {formData.deliveryTime}</p>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                )}
               </div>
 
-              <div className="px-8 py-5 border-t border-white/10 flex gap-4">
-                <button
-                  type="button"
-                  onClick={() => setShowModal(false)}
-                  className="flex-1 text-white/50 font-black uppercase text-[10px] tracking-widest py-4 border border-white/10 hover:bg-white/5 transition-all cursor-pointer"
-                >
-                  Cancel
-                </button>
-                <button
-                  type="submit"
-                  disabled={saving}
-                  className="flex-1 bg-accent hover:bg-accent/80 text-primary font-black uppercase text-[10px] tracking-widest py-4 transition-all cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
-                >
-                  {saving ? "Saving..." : editingProduct ? "Update Product" : "Submit for Approval"}
-                </button>
+              {/* Navigation */}
+              <div className="px-8 py-5 border-t border-white/10 flex gap-3 shrink-0">
+                {safeStep > 0 ? (
+                  <button
+                    type="button"
+                    onClick={prevStep}
+                    className="flex items-center gap-2 px-5 py-3 border border-white/10 text-white/50 font-black uppercase text-[10px] tracking-widest hover:bg-white/5 transition-all cursor-pointer"
+                  >
+                    <ArrowLeft size={14} /> Back
+                  </button>
+                ) : (
+                  <button
+                    type="button"
+                    onClick={() => setShowModal(false)}
+                    className="flex items-center gap-2 px-5 py-3 border border-white/10 text-white/50 font-black uppercase text-[10px] tracking-widest hover:bg-white/5 transition-all cursor-pointer"
+                  >
+                    Cancel
+                  </button>
+                )}
+
+                {isLastStep ? (
+                  <button
+                    type="submit"
+                    disabled={saving}
+                    className="flex-1 bg-accent hover:bg-accent/80 text-primary font-black uppercase text-[10px] tracking-widest py-3 transition-all cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+                  >
+                    {saving ? "Saving..." : editingProduct ? "Update Product" : "Submit for Approval"}
+                  </button>
+                ) : (
+                  <button
+                    type="button"
+                    onClick={nextStep}
+                    disabled={!canProceed()}
+                    className="flex-1 bg-accent hover:bg-accent/80 text-primary font-black uppercase text-[10px] tracking-widest py-3 transition-all cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+                  >
+                    Next <ArrowRight size={14} />
+                  </button>
+                )}
               </div>
             </form>
           </div>

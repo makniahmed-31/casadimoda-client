@@ -686,7 +686,14 @@
     "themeHowItWorks": "Comment ça fonctionne ?",
     "themeHowItWorksDesc": "Chaque thème injecte des variables CSS personnalisées sur l'ensemble du site. Tous les boutons, cartes produits et composants se mettent à jour instantanément. Ajoutez de nouveaux thèmes en modifiant uniquement public/themes.json.",
     "themeTokens": "Tokens du Thème Actif",
-    "themeTokensDesc": "Variables CSS injectées dans :root"
+    "themeTokensDesc": "Variables CSS injectées dans :root",
+    "productType": "Type de Produit",
+    "local": "Local",
+    "international": "International",
+    "shippingTime": "Délai de Livraison",
+    "shippingTimePlaceholder": "ex: 15-30 jours",
+    "cbmRequired": "Le CBM est requis pour les produits internationaux",
+    "shippingTimeRequired": "Le délai de livraison est requis pour les produits internationaux"
   },
   "footer": {
     "allRightsReserved": "All rights reserved. Casa Di Moda © {year}.",
