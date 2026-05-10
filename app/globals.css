@@ -1,7 +1,6 @@
 @import "tailwindcss";
 
 @theme {
-  /* Dark Luxe Design Tokens — defaults overridden at runtime by ThemeContext */
   --color-primary: #1a1a1a;
   --color-secondary: #f5f0eb;
   --color-accent: #c9a96e;
@@ -23,11 +22,9 @@
   --foreground: #1a1a1a;
   color-scheme: light;
 
-  /* Scrollbar tokens — overridden per theme by ThemeContext */
   --scrollbar-thumb: #d4d0cc;
   --scrollbar-thumb-hover: #c9a96e;
 
-  /* Component tokens — overridden per theme by ThemeContext */
   --btn-primary-bg: #c9a96e;
   --btn-primary-text: #1a1a1a;
   --btn-primary-hover-bg: #b8924a;
@@ -38,13 +35,11 @@
   --input-border: rgba(255, 255, 255, 0.1);
   --input-focus-border: #c9a96e;
 
-  /* Border radius tokens — overridden per theme + per admin override */
   --radius-card: 0px;
   --radius-button: 0px;
   --radius-badge: 2px;
   --radius-input: 0px;
 
-  /* Product card tokens — overridden per theme by ThemeContext */
   --pc-bg-from: #1c1c1c;
   --pc-bg-to: #141414;
   --pc-border: rgba(255, 255, 255, 0.06);

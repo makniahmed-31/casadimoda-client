@@ -1,29 +1,28 @@
 "use client";
 
-import React, { useState } from "react";
 import { Link } from "@/i18n/routing";
-import { usePathname } from "next/navigation";
-import { useTranslations } from "next-intl";
 import {
-  LayoutDashboard,
-  Package,
-  Tag,
-  Users,
-  Gift,
-  Ticket,
-  Settings,
   ChevronRight,
+  Clock,
+  Gift,
   Layers,
+  LayoutDashboard,
   LogOut,
   Menu,
-  X,
-  Store,
-  Clock,
-  ShoppingBag,
+  Package,
   Palette,
+  ShoppingBag,
+  Store,
+  Tag,
+  Ticket,
   Truck,
+  Users,
+  X,
 } from "lucide-react";
 import { signOut } from "next-auth/react";
+import { useTranslations } from "next-intl";
+import { usePathname } from "next/navigation";
+import React, { useState } from "react";
 
 const sidebarLinks = [
   { name: "dashboard", href: "/admin", icon: LayoutDashboard },
@@ -39,14 +38,9 @@ const sidebarLinks = [
   { name: "giftCards", href: "/admin/giftcards", icon: Gift },
   { name: "coupons", href: "/admin/coupons", icon: Ticket },
   { name: "users", href: "/admin/users", icon: Users },
-  { name: "settings", href: "/admin/settings", icon: Settings },
 ];
 
-export default function AdminLayout({
-  children,
-}: {
-  children: React.ReactNode;
-}) {
+export default function AdminLayout({ children }: { children: React.ReactNode }) {
   const t = useTranslations("admin");
   const pathname = usePathname();
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
@@ -55,19 +49,14 @@ export default function AdminLayout({
     <div className="flex flex-col lg:flex-row min-h-screen bg-primary relative overflow-hidden">
       {/* Mobile Top Header */}
       <header className="lg:hidden flex items-center justify-between px-6 py-4 bg-primary text-white sticky top-0 z-40 shadow-md">
-        <button
-          onClick={() => setIsSidebarOpen(true)}
-          className="p-2 hover:bg-white/10  transition-colors order-first"
-        >
+        <button onClick={() => setIsSidebarOpen(true)} className="p-2 hover:bg-white/10  transition-colors order-first">
           <Menu size={24} className="text-accent" />
         </button>
         <Link href="/" className="flex items-center gap-2">
           <div className="w-8 h-8 bg-accent  flex items-center justify-center">
             <span className="text-white font-black italic text-sm">C</span>
           </div>
-          <span className="font-bold tracking-tight uppercase text-sm">
-            {t("casaAdmin")}
-          </span>
+          <span className="font-bold tracking-tight uppercase text-sm">{t("casaAdmin")}</span>
         </Link>
         <div className="w-10" /> {/* Spacer to keep logo semi-centered */}
       </header>
@@ -90,9 +79,7 @@ export default function AdminLayout({
         <div className="p-8 border-b border-white/5 sticky top-0 bg-primary z-10 hidden lg:block">
           <Link href="/" className="group flex items-center gap-3">
             <div className="w-10 h-10 bg-accent  flex items-center justify-center rotate-3 group-hover:rotate-0 transition-transform">
-              <span className="text-white font-black text-xl italic font-playfair">
-                C
-              </span>
+              <span className="text-white font-black text-xl italic font-playfair">C</span>
             </div>
             <span className="text-xl font-black tracking-tighter uppercase font-playfair">
               {t("casaAdmin")}
@@ -107,9 +94,7 @@ export default function AdminLayout({
             <div className="w-8 h-8 bg-accent  flex items-center justify-center">
               <span className="text-white font-black text-lg italic">C</span>
             </div>
-            <span className="font-bold tracking-tight uppercase">
-              {t("adminPanel")}
-            </span>
+            <span className="font-bold tracking-tight uppercase">{t("adminPanel")}</span>
           </Link>
           <button onClick={() => setIsSidebarOpen(false)}>
             <X size={24} className="text-accent" />
@@ -117,9 +102,7 @@ export default function AdminLayout({
         </div>
 
         <nav className="flex-grow p-6 space-y-2 mt-4 overflow-y-auto">
-          <p className="text-[10px] font-black uppercase tracking-[0.3em] text-white/30 mb-4 ml-4">
-            {t("management")}
-          </p>
+          <p className="text-[10px] font-black uppercase tracking-[0.3em] text-white/30 mb-4 ml-4">{t("management")}</p>
           {sidebarLinks.map((link) => {
             const Icon = link.icon;
             const isActive = pathname === link.href;
@@ -136,17 +119,11 @@ export default function AdminLayout({
               >
                 <div className="flex items-center gap-4">
                   <Icon size={20} strokeWidth={isActive ? 2.5 : 2} />
-                  <span
-                    className={`text-sm tracking-wide ${
-                      isActive ? "font-black" : "font-medium"
-                    }`}
-                  >
+                  <span className={`text-sm tracking-wide ${isActive ? "font-black" : "font-medium"}`}>
                     {(t as (k: string) => string)(link.name)}
                   </span>
                 </div>
-                {isActive && (
-                  <ChevronRight size={14} className="animate-pulse" />
-                )}
+                {isActive && <ChevronRight size={14} className="animate-pulse" />}
               </Link>
             );
           })}
@@ -164,9 +141,7 @@ export default function AdminLayout({
       </aside>
 
       {/* Main Content */}
-      <main className="flex-grow p-2 md:p-6 lg:p-10 overflow-y-auto w-full">
-        {children}
-      </main>
+      <main className="flex-grow p-2 md:p-6 lg:p-10 overflow-y-auto w-full">{children}</main>
     </div>
   );
 }

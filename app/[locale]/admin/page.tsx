@@ -1,30 +1,22 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { apiFetch } from "@/utils/api";
 import {
-  XAxis,
-  YAxis,
-  CartesianGrid,
-  Tooltip,
-  ResponsiveContainer,
-  AreaChart,
-  Area,
-} from "recharts";
-import Link from "next/link";
-import {
-  TrendingUp,
-  Package,
-  Users,
-  ShoppingCart,
-  DollarSign,
-  ArrowUpRight,
   ArrowDownRight,
-  Clock,
-  Truck,
+  ArrowUpRight,
   CheckCircle,
+  Clock,
+  DollarSign,
+  Package,
+  ShoppingCart,
+  TrendingUp,
+  Truck,
+  Users,
 } from "lucide-react";
 import { useTranslations } from "next-intl";
-import { apiFetch } from "@/utils/api";
+import Link from "next/link";
+import { useEffect, useState } from "react";
+import { Area, AreaChart, CartesianGrid, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
 
 interface SummaryData {
   ordersCount: number;
@@ -80,8 +72,6 @@ export default function AdminDashboard() {
     );
   }
 
-  console.log("summary", summary);
-
   const stats = [
     {
       label: t("totalRevenue"),
@@ -129,25 +119,18 @@ export default function AdminDashboard() {
           <h1 className="text-xl sm:text-2xl lg:text-3xl font-black text-white tracking-tight">
             {t("dashboardTitle")}
           </h1>
-          <p className="text-white/30 font-bold uppercase tracking-widest text-[10px] mt-1">
-            {t("dashboardSubtitle")}
-          </p>
+          <p className="text-white/30 font-bold uppercase tracking-widest text-[10px] mt-1">{t("dashboardSubtitle")}</p>
         </div>
         <div className="hidden md:flex items-center gap-2 bg-white/5 border border-white/10 px-4 py-2">
           <div className="w-2 h-2 bg-green-400 rounded-full animate-pulse" />
-          <span className="text-[10px] font-black uppercase tracking-widest text-white/60">
-            {t("live")}
-          </span>
+          <span className="text-[10px] font-black uppercase tracking-widest text-white/60">{t("live")}</span>
         </div>
       </div>
 
       {/* Stats Grid */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
         {stats.map((stat, i) => (
-          <div
-            key={i}
-            className="bg-white/5 border border-white/10 p-5 hover:border-accent/30 transition-colors"
-          >
+          <div key={i} className="bg-white/5 border border-white/10 p-5 hover:border-accent/30 transition-colors">
             <div className="flex justify-between items-start mb-4">
               <div className={`${stat.bg} ${stat.color} p-3`}>
                 <stat.icon size={20} />
@@ -155,17 +138,11 @@ export default function AdminDashboard() {
               <div
                 className={`flex items-center gap-1 text-[10px] font-bold px-2 py-1 ${stat.isUp ? "text-green-400 bg-green-500/10" : "text-red-400 bg-red-500/10"}`}
               >
-                {stat.isUp ? (
-                  <ArrowUpRight size={11} />
-                ) : (
-                  <ArrowDownRight size={11} />
-                )}
+                {stat.isUp ? <ArrowUpRight size={11} /> : <ArrowDownRight size={11} />}
                 {stat.trend}
               </div>
             </div>
-            <p className="text-[9px] font-black uppercase tracking-widest text-white/30 mb-1">
-              {stat.label}
-            </p>
+            <p className="text-[9px] font-black uppercase tracking-widest text-white/30 mb-1">{stat.label}</p>
             <p className="text-2xl font-black text-white">{stat.value}</p>
           </div>
         ))}
@@ -176,9 +153,7 @@ export default function AdminDashboard() {
         <div className="flex items-center justify-between px-6 py-4 border-b border-white/10">
           <div className="flex items-center gap-3">
             <div className="w-2 h-2 bg-blue-400 rounded-full animate-pulse" />
-            <h3 className="text-sm font-black text-white">
-              {t("activeOrders")}
-            </h3>
+            <h3 className="text-sm font-black text-white">{t("activeOrders")}</h3>
             {activeCount > 0 && (
               <span className="bg-blue-500/20 text-blue-400 text-[9px] font-black px-2 py-0.5 border border-blue-500/30">
                 {t("activeOrdersPending", { count: activeCount })}
@@ -196,9 +171,7 @@ export default function AdminDashboard() {
         {activeOrders.length === 0 ? (
           <div className="px-6 py-8 text-center">
             <CheckCircle size={24} className="text-green-400/40 mx-auto mb-2" />
-            <p className="text-[10px] font-black uppercase tracking-widest text-white/20">
-              {t("allOrdersDelivered")}
-            </p>
+            <p className="text-[10px] font-black uppercase tracking-widest text-white/20">{t("allOrdersDelivered")}</p>
           </div>
         ) : (
           <div className="divide-y divide-white/5">
@@ -208,9 +181,7 @@ export default function AdminDashboard() {
                 className="grid grid-cols-12 gap-3 px-6 py-3 hover:bg-white/5 transition-colors items-center"
               >
                 <div className="col-span-3">
-                  <p className="text-xs font-bold text-white/80 font-mono">
-                    #{order._id.slice(-6).toUpperCase()}
-                  </p>
+                  <p className="text-xs font-bold text-white/80 font-mono">#{order._id.slice(-6).toUpperCase()}</p>
                   <p className="text-[10px] text-white/30 mt-0.5">
                     {new Date(order.createdAt).toLocaleDateString("fr-FR", {
                       day: "2-digit",
@@ -222,24 +193,16 @@ export default function AdminDashboard() {
                   <p className="text-xs font-bold text-white truncate">
                     {order.user?.name || order.shippingAddress.fullName}
                   </p>
-                  <p className="text-[10px] text-white/30 truncate">
-                    {order.shippingAddress.city}
-                  </p>
+                  <p className="text-[10px] text-white/30 truncate">{order.shippingAddress.city}</p>
                 </div>
                 <div className="col-span-2">
-                  <p className="text-xs font-black text-accent">
-                    {order.totalPrice.toLocaleString()} TND
-                  </p>
+                  <p className="text-xs font-black text-accent">{order.totalPrice.toLocaleString()} TND</p>
                 </div>
                 <div className="col-span-3 flex flex-col gap-1">
                   <span
                     className={`flex items-center gap-1 text-[8px] font-black px-1.5 py-0.5 w-fit ${order.isPaid ? "text-green-400 bg-green-500/10" : "text-yellow-400 bg-yellow-500/10"}`}
                   >
-                    {order.isPaid ? (
-                      <CheckCircle size={8} />
-                    ) : (
-                      <Clock size={8} />
-                    )}
+                    {order.isPaid ? <CheckCircle size={8} /> : <Clock size={8} />}
                     {order.isPaid ? t("paid") : t("unpaid")}
                   </span>
                   <span className="flex items-center gap-1 text-[8px] font-black px-1.5 py-0.5 w-fit text-blue-400 bg-blue-500/10">
@@ -269,9 +232,7 @@ export default function AdminDashboard() {
         <div className="lg:col-span-2 bg-white/5 border border-white/10 p-6">
           <div className="flex justify-between items-center mb-8">
             <div>
-              <h3 className="text-base font-black text-white">
-                {t("revenueTrajectory")}
-              </h3>
+              <h3 className="text-base font-black text-white">{t("revenueTrajectory")}</h3>
               <p className="text-[10px] font-bold uppercase tracking-widest text-white/30 mt-1">
                 {t("monthlyPerformance")}
               </p>
@@ -281,8 +242,8 @@ export default function AdminDashboard() {
               <option>{t("lastYear")}</option>
             </select>
           </div>
-          <div className="h-[300px] w-full">
-            <ResponsiveContainer width="100%" height="100%">
+          <div className="h-[300px] w-full min-w-0">
+            <ResponsiveContainer width="100%" height="100%" minWidth={0}>
               <AreaChart data={summary?.salesData}>
                 <defs>
                   <linearGradient id="colorSales" x1="0" y1="0" x2="0" y2="1">
@@ -290,11 +251,7 @@ export default function AdminDashboard() {
                     <stop offset="95%" stopColor="#c9a96e" stopOpacity={0} />
                   </linearGradient>
                 </defs>
-                <CartesianGrid
-                  strokeDasharray="3 3"
-                  vertical={false}
-                  stroke="#ffffff10"
-                />
+                <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#ffffff10" />
                 <XAxis
                   dataKey="_id"
                   axisLine={false}
@@ -302,11 +259,7 @@ export default function AdminDashboard() {
                   tick={{ fontSize: 10, fontWeight: 700, fill: "#ffffff40" }}
                   dy={10}
                 />
-                <YAxis
-                  axisLine={false}
-                  tickLine={false}
-                  tick={{ fontSize: 10, fontWeight: 700, fill: "#ffffff40" }}
-                />
+                <YAxis axisLine={false} tickLine={false} tick={{ fontSize: 10, fontWeight: 700, fill: "#ffffff40" }} />
                 <Tooltip
                   contentStyle={{
                     background: "#1a1a1a",
@@ -332,9 +285,7 @@ export default function AdminDashboard() {
         {/* Quick Actions */}
         <div className="bg-white/5 border border-white/10 p-6 flex flex-col">
           <div className="mb-6">
-            <h3 className="text-base font-black text-white">
-              {t("quickActions")}
-            </h3>
+            <h3 className="text-base font-black text-white">{t("quickActions")}</h3>
             <p className="text-[10px] font-bold uppercase tracking-widest text-white/30 mt-1">
               {t("managementGateways")}
             </p>
@@ -364,14 +315,10 @@ export default function AdminDashboard() {
           <div className="mt-6 p-4 bg-accent/5 border border-accent/20">
             <div className="flex items-center gap-2 mb-2">
               <TrendingUp className="text-accent" size={16} />
-              <span className="text-[10px] font-black text-accent uppercase tracking-widest">
-                {t("growth")}
-              </span>
+              <span className="text-[10px] font-black text-accent uppercase tracking-widest">{t("growth")}</span>
             </div>
             <p className="text-xs text-white/40 leading-relaxed">
-              {t("growthMessagePre")}{" "}
-              <span className="text-accent font-black">24%</span>{" "}
-              {t("growthMessagePost")}
+              {t("growthMessagePre")} <span className="text-accent font-black">24%</span> {t("growthMessagePost")}
             </p>
           </div>
         </div>

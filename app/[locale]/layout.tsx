@@ -1,7 +1,6 @@
 import { AuthProvider } from "@/components/AuthProvider";
 import { routing } from "@/i18n/routing";
 import { StoreProvider } from "@/utils/context/Store";
-import { ThemeProvider } from "@/utils/context/ThemeContext";
 import { NextIntlClientProvider } from "next-intl";
 import { getMessages } from "next-intl/server";
 import { notFound } from "next/navigation";
@@ -29,14 +28,12 @@ export default async function LocaleLayout({ children, params }: Props) {
   return (
     <div lang={locale} dir={dir}>
       <NextIntlClientProvider messages={messages}>
-        <ThemeProvider>
-          <AuthProvider>
-            <StoreProvider>
-              <NextTopLoader color="#c9a96e" showSpinner={false} height={2} />
-              {children}
-            </StoreProvider>
-          </AuthProvider>
-        </ThemeProvider>
+        <AuthProvider>
+          <StoreProvider>
+            <NextTopLoader color="#c9a96e" showSpinner={false} height={2} />
+            {children}
+          </StoreProvider>
+        </AuthProvider>
       </NextIntlClientProvider>
     </div>
   );
