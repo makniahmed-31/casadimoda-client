@@ -85,6 +85,7 @@ export interface Product {
   cbm?: number;
   hsCode?: string;
   productType?: "local" | "international";
+  currency?: "TND" | "USD" | "EUR";
   isFeatured?: boolean;
   supplier?: string | Supplier;
   approvalStatus?: "pending" | "approved" | "rejected";

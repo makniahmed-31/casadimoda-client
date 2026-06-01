@@ -4,6 +4,7 @@ import ImageUpload from "@/components/ImageUpload";
 import Pagination from "@/components/Pagination";
 import { Brand, Category, Product, SubCategory } from "@/types";
 import { apiFetch } from "@/utils/api";
+import { zodResolver } from "@hookform/resolvers/zod";
 import {
   ArrowLeft,
   ArrowRight,
@@ -27,7 +28,10 @@ import { useTranslations } from "next-intl";
 import Image from "next/image";
 import { useRouter, useSearchParams } from "next/navigation";
 import React, { useEffect, useState } from "react";
+import type { Resolver } from "react-hook-form";
 import { useForm } from "react-hook-form";
+import type { ProductFormInput } from "./schema";
+import { productSchema, stepFields } from "./schema";
 
 const ALL_STEPS = [
   { id: "type", label: "Type", icon: Globe },
@@ -66,8 +70,28 @@ export default function ProductsTable({
   const [dbColors, setDbColors] = useState<{ _id: string; name: string; hex: string }[]>([]);
   const [selectedDbColor, setSelectedDbColor] = useState("");
   const [currentStep, setCurrentStep] = useState(0);
+  const [submitError, setSubmitError] = useState<string | null>(null);
 
-  const { register, handleSubmit, reset, setValue, watch } = useForm<Product>();
+  const {
+    register,
+    handleSubmit,
+    reset,
+    setValue,
+    watch,
+    trigger,
+    formState: { errors },
+  } = useForm<ProductFormInput>({
+    resolver: zodResolver(productSchema) as Resolver<ProductFormInput>,
+    defaultValues: {
+      productType: "local",
+      currency: "TND",
+      parentCategory: "detail",
+      price: 0,
+      discountPrice: 0,
+      countInStock: 0,
+      isFeatured: false,
+    },
+  });
   const selectedCategory = watch("category");
   const productType = watch("productType");
   const formData = watch();
@@ -84,6 +108,16 @@ export default function ProductsTable({
 
   const nextStep = () => setCurrentStep((s) => Math.min(s + 1, totalSteps - 1));
   const prevStep = () => setCurrentStep((s) => Math.max(s - 1, 0));
+
+  const handleNext = async () => {
+    const fields = stepFields[currentStepId] ?? [];
+    if (fields.length === 0) {
+      nextStep();
+      return;
+    }
+    const valid = await trigger(fields);
+    if (valid) nextStep();
+  };
 
   const canProceed = (): boolean => {
     switch (currentStepId) {
@@ -133,10 +167,14 @@ export default function ProductsTable({
 
   const openModal = (product: Product | null = null) => {
     setCurrentStep(0);
+    setSubmitError(null);
     if (product) {
       setEditingProduct(product);
       Object.keys(product).forEach((key) => {
-        setValue(key as keyof Product, product[key as keyof Product]);
+        setValue(
+          key as keyof ProductFormInput,
+          product[key as keyof ProductFormInput] as ProductFormInput[keyof ProductFormInput]
+        );
       });
       setSizes(product.sizes || []);
       setColors(product.colors || []);
@@ -164,11 +202,12 @@ export default function ProductsTable({
         deliveryTime: "",
         dimensions: "",
         weight: "",
-        cbm: 0,
+        cbm: undefined,
         hsCode: "",
         isFeatured: false,
         parentCategory: "detail",
         productType: "local",
+        currency: "TND",
       });
       setSizes([]);
       setColors([]);
@@ -205,7 +244,8 @@ export default function ProductsTable({
     };
   }, [showModal]);
 
-  const onSubmit = async (data: Product) => {
+  const onSubmit = async (data: ProductFormInput) => {
+    setSubmitError(null);
     const url = "/api/admin/products";
     const method = editingProduct ? "PUT" : "POST";
     const colorImagesArray = colors
@@ -239,7 +279,7 @@ export default function ProductsTable({
       router.refresh();
     } else {
       const err = await res.json();
-      alert(err.message || t("failedToSave"));
+      setSubmitError(err.message || t("failedToSave"));
     }
   };
 
@@ -355,11 +395,11 @@ export default function ProductsTable({
                         suppressHydrationWarning
                         className={`text-lg font-black ${product.discountPrice > 0 ? "text-red-500" : "text-primary"}`}
                       >
-                        ${(product.discountPrice || product.price).toLocaleString("en-US")}
+                        {(product.discountPrice || product.price).toLocaleString("en-US")} {product.currency || "TND"}
                       </span>
                       {product.discountPrice > 0 && (
                         <span suppressHydrationWarning className="text-[10px] font-bold text-text-dark/30 line-through">
-                          ${product.price.toLocaleString("en-US")}
+                          {product.price.toLocaleString("en-US")} {product.currency || "TND"}
                         </span>
                       )}
                     </div>
@@ -524,10 +564,11 @@ export default function ProductsTable({
                         {t("creationName")}
                       </label>
                       <input
-                        {...register("name", { required: true })}
-                        className="w-full bg-secondary border-none p-4 outline-none font-bold text-primary"
+                        {...register("name")}
+                        className={`w-full bg-secondary border-none p-4 outline-none font-bold text-primary ${errors.name ? "ring-1 ring-red-400" : ""}`}
                         placeholder={t("namePlaceholder")}
                       />
+                      {errors.name && <p className="text-red-500 text-xs mt-1">{errors.name.message}</p>}
                     </div>
 
                     <div className="grid grid-cols-2 gap-4">
@@ -537,8 +578,8 @@ export default function ProductsTable({
                         </label>
                         <div className="relative">
                           <select
-                            {...register("category", { required: true })}
-                            className="w-full bg-secondary border-none p-4 pr-10 outline-none font-bold text-primary appearance-none cursor-pointer"
+                            {...register("category")}
+                            className={`w-full bg-secondary border-none p-4 pr-10 outline-none font-bold text-primary appearance-none cursor-pointer ${errors.category ? "ring-1 ring-red-400" : ""}`}
                           >
                             <option value="">{t("selectCategory")}</option>
                             {categories.map((cat) => (
@@ -552,6 +593,7 @@ export default function ProductsTable({
                             className="absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none text-primary/40"
                           />
                         </div>
+                        {errors.category && <p className="text-red-500 text-xs mt-1">{errors.category.message}</p>}
                       </div>
                       <div className="space-y-2">
                         <label className="text-[11px] font-black uppercase tracking-widest text-primary">
@@ -559,8 +601,8 @@ export default function ProductsTable({
                         </label>
                         <div className="relative">
                           <select
-                            {...register("subCategory", { required: true })}
-                            className="w-full bg-secondary border-none p-4 pr-10 outline-none font-bold text-primary appearance-none cursor-pointer"
+                            {...register("subCategory")}
+                            className={`w-full bg-secondary border-none p-4 pr-10 outline-none font-bold text-primary appearance-none cursor-pointer ${errors.subCategory ? "ring-1 ring-red-400" : ""}`}
                           >
                             <option value="">{t("selectSubcategory")}</option>
                             {subCategories
@@ -576,6 +618,9 @@ export default function ProductsTable({
                             className="absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none text-primary/40"
                           />
                         </div>
+                        {errors.subCategory && (
+                          <p className="text-red-500 text-xs mt-1">{errors.subCategory.message}</p>
+                        )}
                       </div>
                     </div>
 
@@ -586,8 +631,8 @@ export default function ProductsTable({
                         </label>
                         <div className="relative">
                           <select
-                            {...register("brand", { required: true })}
-                            className="w-full bg-secondary border-none p-4 pr-10 outline-none font-bold text-primary appearance-none cursor-pointer"
+                            {...register("brand")}
+                            className={`w-full bg-secondary border-none p-4 pr-10 outline-none font-bold text-primary appearance-none cursor-pointer ${errors.brand ? "ring-1 ring-red-400" : ""}`}
                           >
                             <option value="">{t("selectBrand")}</option>
                             {brands.map((brand) => (
@@ -601,6 +646,7 @@ export default function ProductsTable({
                             className="absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none text-primary/40"
                           />
                         </div>
+                        {errors.brand && <p className="text-red-500 text-xs mt-1">{errors.brand.message}</p>}
                       </div>
                       <div className="space-y-2">
                         <label className="text-[11px] font-black uppercase tracking-widest text-primary">
@@ -819,15 +865,37 @@ export default function ProductsTable({
                     </div>
 
                     <div className="space-y-2">
+                      <label className="text-[11px] font-black uppercase tracking-widest text-primary">Currency</label>
+                      <input type="hidden" {...register("currency")} />
+                      <div className="flex gap-2">
+                        {(["TND", "USD", "EUR"] as const).map((c) => (
+                          <button
+                            key={c}
+                            type="button"
+                            onClick={() => setValue("currency", c)}
+                            className={`flex-1 py-3 font-black text-sm uppercase tracking-widest border-2 transition-all cursor-pointer ${
+                              formData.currency === c
+                                ? "border-accent bg-accent/5 text-accent"
+                                : "border-gray-200 text-primary/40 hover:border-gray-300"
+                            }`}
+                          >
+                            {c}
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+
+                    <div className="space-y-2">
                       <label className="text-[11px] font-black uppercase tracking-widest text-primary">
                         {t("originalPrice")}
                       </label>
                       <input
                         type="number"
-                        {...register("price", { required: true })}
-                        className="w-full bg-secondary border-none p-4 outline-none font-bold text-primary"
+                        {...register("price")}
+                        className={`w-full bg-secondary border-none p-4 outline-none font-bold text-primary ${errors.price ? "ring-1 ring-red-400" : ""}`}
                         placeholder="0"
                       />
+                      {errors.price && <p className="text-red-500 text-xs mt-1">{errors.price.message}</p>}
                     </div>
                     <div className="space-y-2">
                       <label className="text-[11px] font-black uppercase tracking-widest text-primary">
@@ -846,10 +914,13 @@ export default function ProductsTable({
                       </label>
                       <input
                         type="number"
-                        {...register("countInStock", { required: true })}
-                        className="w-full bg-secondary border-none p-4 outline-none font-bold text-primary"
+                        {...register("countInStock")}
+                        className={`w-full bg-secondary border-none p-4 outline-none font-bold text-primary ${errors.countInStock ? "ring-1 ring-red-400" : ""}`}
                         placeholder="0"
                       />
+                      {errors.countInStock && (
+                        <p className="text-red-500 text-xs mt-1">{errors.countInStock.message}</p>
+                      )}
                     </div>
                   </div>
                 )}
@@ -867,10 +938,11 @@ export default function ProductsTable({
                         {t("narrativeDescription")}
                       </label>
                       <textarea
-                        {...register("description", { required: true })}
-                        className="w-full bg-secondary border-none p-4 outline-none font-bold text-primary min-h-[120px] resize-none"
+                        {...register("description")}
+                        className={`w-full bg-secondary border-none p-4 outline-none font-bold text-primary min-h-[120px] resize-none ${errors.description ? "ring-1 ring-red-400" : ""}`}
                         placeholder={t("descriptionPlaceholder")}
                       />
+                      {errors.description && <p className="text-red-500 text-xs mt-1">{errors.description.message}</p>}
                     </div>
 
                     <div className="space-y-2">
@@ -932,10 +1004,11 @@ export default function ProductsTable({
                       <input
                         type="number"
                         step="0.001"
-                        {...register("cbm", { required: t("cbmRequired"), valueAsNumber: true })}
-                        className="w-full bg-secondary border-none p-4 outline-none font-bold text-primary"
+                        {...register("cbm")}
+                        className={`w-full bg-secondary border-none p-4 outline-none font-bold text-primary ${errors.cbm ? "ring-1 ring-red-400" : ""}`}
                         placeholder={t("cbmPlaceholder")}
                       />
+                      {errors.cbm && <p className="text-red-500 text-xs mt-1">{errors.cbm.message}</p>}
                     </div>
 
                     <div className="space-y-2">
@@ -943,10 +1016,13 @@ export default function ProductsTable({
                         {t("shippingTime")} <span className="text-accent">*</span>
                       </label>
                       <input
-                        {...register("deliveryTime", { required: t("shippingTimeRequired") })}
-                        className="w-full bg-secondary border-none p-4 outline-none font-bold text-primary"
+                        {...register("deliveryTime")}
+                        className={`w-full bg-secondary border-none p-4 outline-none font-bold text-primary ${errors.deliveryTime ? "ring-1 ring-red-400" : ""}`}
                         placeholder={t("shippingTimePlaceholder")}
                       />
+                      {errors.deliveryTime && (
+                        <p className="text-red-500 text-xs mt-1">{errors.deliveryTime.message}</p>
+                      )}
                     </div>
                   </div>
                 )}
@@ -1012,10 +1088,12 @@ export default function ProductsTable({
 
                       <div className="p-4 bg-secondary">
                         <p className="text-[9px] font-black uppercase tracking-widest text-primary/40 mb-2">Pricing</p>
-                        <p className="font-black text-accent text-lg">{Number(formData.price).toLocaleString()} TND</p>
+                        <p className="font-black text-accent text-lg">
+                          {Number(formData.price).toLocaleString()} {formData.currency || "TND"}
+                        </p>
                         {Number(formData.discountPrice) > 0 && (
                           <p className="text-sm text-red-500 mt-0.5">
-                            {Number(formData.discountPrice).toLocaleString()} TND discounted
+                            {Number(formData.discountPrice).toLocaleString()} {formData.currency || "TND"} discounted
                           </p>
                         )}
                         <p className="text-xs text-text-dark/40 mt-1">
@@ -1056,43 +1134,49 @@ export default function ProductsTable({
               </div>
 
               {/* Navigation */}
-              <div className="px-8 py-5 border-t border-gray-100 flex gap-3 shrink-0 bg-white">
-                {safeStep > 0 ? (
-                  <button
-                    type="button"
-                    onClick={prevStep}
-                    className="flex items-center gap-2 px-6 py-4 text-primary font-black uppercase text-[10px] tracking-widest hover:bg-secondary transition-all cursor-pointer"
-                  >
-                    <ArrowLeft size={14} /> Back
-                  </button>
-                ) : (
-                  <button
-                    type="button"
-                    onClick={() => setShowModal(false)}
-                    className="flex-1 text-primary font-black uppercase text-[10px] tracking-widest py-4 hover:bg-secondary transition-all cursor-pointer"
-                  >
-                    {t("abortMission")}
-                  </button>
+              <div className="px-8 pb-5 border-t border-gray-100 shrink-0 bg-white">
+                {submitError && (
+                  <div className="mt-4 px-4 py-3 bg-red-50 border border-red-200 text-red-600 text-xs font-bold">
+                    {submitError}
+                  </div>
                 )}
+                <div className="flex gap-3 mt-4">
+                  {safeStep > 0 ? (
+                    <button
+                      type="button"
+                      onClick={prevStep}
+                      className="flex items-center gap-2 px-6 py-4 text-primary font-black uppercase text-[10px] tracking-widest hover:bg-secondary transition-all cursor-pointer"
+                    >
+                      <ArrowLeft size={14} /> Back
+                    </button>
+                  ) : (
+                    <button
+                      type="button"
+                      onClick={() => setShowModal(false)}
+                      className="flex-1 text-primary font-black uppercase text-[10px] tracking-widest py-4 hover:bg-secondary transition-all cursor-pointer"
+                    >
+                      {t("abortMission")}
+                    </button>
+                  )}
 
-                {isLastStep ? (
-                  <button
-                    type="submit"
-                    disabled={saving}
-                    className="flex-1 bg-primary text-white font-black uppercase text-[10px] tracking-widest py-4 shadow-xl hover:bg-black transition-all cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
-                  >
-                    {saving ? t("committing") : t("commitToRegistry")}
-                  </button>
-                ) : (
-                  <button
-                    type="button"
-                    onClick={nextStep}
-                    disabled={!canProceed()}
-                    className="flex-1 bg-primary text-white font-black uppercase text-[10px] tracking-widest py-4 shadow-xl hover:bg-black transition-all cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
-                  >
-                    Next <ArrowRight size={14} />
-                  </button>
-                )}
+                  {isLastStep ? (
+                    <button
+                      type="submit"
+                      disabled={saving}
+                      className="flex-1 bg-primary text-white font-black uppercase text-[10px] tracking-widest py-4 shadow-xl hover:bg-black transition-all cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
+                    >
+                      {saving ? t("committing") : t("commitToRegistry")}
+                    </button>
+                  ) : (
+                    <button
+                      type="button"
+                      onClick={handleNext}
+                      className="flex-1 bg-primary text-white font-black uppercase text-[10px] tracking-widest py-4 shadow-xl hover:bg-black transition-all cursor-pointer flex items-center justify-center gap-2"
+                    >
+                      Next <ArrowRight size={14} />
+                    </button>
+                  )}
+                </div>
               </div>
             </form>
           </div>
