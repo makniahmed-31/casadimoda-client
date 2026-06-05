@@ -43,7 +43,7 @@ export default function ProductItem({ product }: ProductItemProps) {
 
   const firstColor = product.colors?.[0] ?? null;
   const firstImage = firstColor
-    ? (product.colorImages?.find((ci) => ci.color === firstColor)?.image ?? product.image)
+    ? (product.colorImages?.find((ci) => ci.color === firstColor)?.images?.[0] ?? product.image)
     : product.image;
 
   const [activeImage, setActiveImage] = useState(firstImage);
@@ -143,7 +143,7 @@ export default function ProductItem({ product }: ProductItemProps) {
   const handleColorClick = (color: string) => {
     setActiveColor(color);
     const match = product.colorImages?.find((ci) => ci.color === color);
-    setActiveImage(match?.image ?? product.image);
+    setActiveImage(match?.images?.[0] ?? product.image);
   };
 
   const addToCartHandler = () => {

@@ -71,7 +71,7 @@ export interface Product {
   discountPrice: number;
   sizes: string[];
   colors: string[];
-  colorImages?: { color: string; hex: string; image: string }[];
+  colorImages?: { color: string; hex: string; images: string[] }[];
   parentCategory: "detail" | "gros";
   countInStock: number;
   image: string;

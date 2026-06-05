@@ -2,7 +2,7 @@
 
 import { ChevronLeft, ChevronRight, X } from "lucide-react";
 import Image from "next/image";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 
 interface Props {
   images: string[];
@@ -14,6 +14,21 @@ interface Props {
 export default function ProductGallery({ images, displayImage, onSelect, productName }: Props) {
   const [lightboxOpen, setLightboxOpen] = useState(false);
   const [lightboxIndex, setLightboxIndex] = useState(0);
+  const touchStartX = useRef<number | null>(null);
+
+  const currentIndex = images.indexOf(displayImage);
+  const goNext = () => onSelect(images[(currentIndex + 1) % images.length]);
+  const goPrev = () => onSelect(images[(currentIndex - 1 + images.length) % images.length]);
+
+  const handleTouchStart = (e: React.TouchEvent) => {
+    touchStartX.current = e.touches[0].clientX;
+  };
+  const handleTouchEnd = (e: React.TouchEvent) => {
+    if (touchStartX.current === null || images.length < 2) return;
+    const dx = e.changedTouches[0].clientX - touchStartX.current;
+    if (Math.abs(dx) > 50) dx < 0 ? goNext() : goPrev();
+    touchStartX.current = null;
+  };
 
   useEffect(() => {
     if (!lightboxOpen) return;
@@ -48,9 +63,11 @@ export default function ProductGallery({ images, displayImage, onSelect, product
         {/* Main image + bottom row */}
         <div className="flex-1 flex flex-col gap-2 min-w-0">
           <div
-            className="relative w-full overflow-hidden bg-white border border-gray-100 cursor-zoom-in"
+            className="relative w-full overflow-hidden bg-white border border-gray-100 cursor-zoom-in group/main"
             style={{ aspectRatio: "4/5" }}
             onClick={openLightbox}
+            onTouchStart={handleTouchStart}
+            onTouchEnd={handleTouchEnd}
           >
             <Image
               src={displayImage}
@@ -61,6 +78,43 @@ export default function ProductGallery({ images, displayImage, onSelect, product
               priority
               unoptimized
             />
+            {images.length > 1 && (
+              <>
+                <button
+                  type="button"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    goPrev();
+                  }}
+                  className="absolute left-2 top-1/2 -translate-y-1/2 bg-white/80 hover:bg-white text-primary p-1.5 opacity-0 group-hover/main:opacity-100 transition-opacity z-10 shadow-md cursor-pointer"
+                >
+                  <ChevronLeft size={18} />
+                </button>
+                <button
+                  type="button"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    goNext();
+                  }}
+                  className="absolute right-2 top-1/2 -translate-y-1/2 bg-white/80 hover:bg-white text-primary p-1.5 opacity-0 group-hover/main:opacity-100 transition-opacity z-10 shadow-md cursor-pointer"
+                >
+                  <ChevronRight size={18} />
+                </button>
+                <div className="absolute bottom-2 left-1/2 -translate-x-1/2 flex gap-1.5 z-10">
+                  {images.map((_, i) => (
+                    <button
+                      key={i}
+                      type="button"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        onSelect(images[i]);
+                      }}
+                      className={`w-1.5 h-1.5 rounded-full transition-all cursor-pointer ${i === currentIndex ? "bg-primary scale-125" : "bg-primary/30"}`}
+                    />
+                  ))}
+                </div>
+              </>
+            )}
           </div>
 
           {/* {images.length > 1 && (

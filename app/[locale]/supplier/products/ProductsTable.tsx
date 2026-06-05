@@ -66,7 +66,7 @@ export default function SupplierProductsTable({
   const [sizes, setSizes] = useState<string[]>([]);
   const [selectedSize, setSelectedSize] = useState("");
   const [colors, setColors] = useState<string[]>([]);
-  const [colorImages, setColorImages] = useState<Record<string, string>>({});
+  const [colorImages, setColorImages] = useState<Record<string, string[]>>({});
   const [primaryColor, setPrimaryColor] = useState("");
   const [dbColors, setDbColors] = useState<{ _id: string; name: string; hex: string }[]>([]);
   const [selectedDbColor, setSelectedDbColor] = useState("");
@@ -181,13 +181,13 @@ export default function SupplierProductsTable({
       });
       setSizes(product.sizes || []);
       setColors(product.colors || []);
-      const ci: Record<string, string> = {};
-      (product.colorImages || []).forEach(({ color, image }) => {
-        ci[color] = image;
+      const ci: Record<string, string[]> = {};
+      (product.colorImages || []).forEach((c) => {
+        ci[c.color] = c.images?.length ? c.images : [];
       });
       setColorImages(ci);
       const matchedPrimary =
-        (product.colorImages || []).find((ci) => ci.image === product.image)?.color ||
+        (product.colorImages || []).find((ci) => ci.images?.[0] === product.image)?.color ||
         product.colorImages?.[0]?.color ||
         "";
       setPrimaryColor(matchedPrimary);
@@ -234,15 +234,16 @@ export default function SupplierProductsTable({
     const url = "/api/supplier/products";
     const method = editingProduct ? "PUT" : "POST";
     const colorImagesArray = colors
-      .filter((color) => colorImages[color])
+      .filter((color) => colorImages[color]?.length)
       .map((color) => ({
         color,
-        image: colorImages[color],
+        images: colorImages[color],
         hex: dbColors.find((c) => c.name === color)?.hex || "",
       }));
     const primaryImage =
-      (primaryColor && colorImages[primaryColor]) ||
-      (colors.find((c) => colorImages[c]) ? colorImages[colors.find((c) => colorImages[c])!] : "");
+      (primaryColor && colorImages[primaryColor]?.[0]) ||
+      colorImages[colors.find((c) => colorImages[c]?.length) ?? ""]?.[0] ||
+      "";
     const body = editingProduct
       ? { ...data, _id: editingProduct._id, image: primaryImage, sizes, colors, colorImages: colorImagesArray }
       : { ...data, image: primaryImage, sizes, colors, colorImages: colorImagesArray };
@@ -879,71 +880,84 @@ export default function SupplierProductsTable({
                       </div>
                       {colors.length > 0 && (
                         <div className="space-y-2 mt-2">
-                          {colors.map((color) => (
-                            <div
-                              key={color}
-                              className="flex items-center gap-2 bg-white/5 border border-white/10 px-3 py-2"
-                            >
-                              <span className="flex-1 text-white font-bold text-xs">{color}</span>
-                              {colorImages[color] && (
-                                <div className="relative shrink-0">
-                                  <div className="w-8 h-8 overflow-hidden border border-white/10">
-                                    {/* eslint-disable-next-line @next/next/no-img-element */}
-                                    <img src={colorImages[color]} alt={color} className="w-full h-full object-cover" />
-                                  </div>
+                          {colors.map((color) => {
+                            const imgs = colorImages[color] ?? [];
+                            return (
+                              <div key={color} className="bg-white/5 border border-white/10 px-3 py-2 space-y-2">
+                                <div className="flex items-center gap-2">
+                                  <span className="flex-1 text-white font-bold text-xs">{color}</span>
+                                  {imgs.length > 0 && (
+                                    <button
+                                      type="button"
+                                      onClick={() => setPrimaryColor(color)}
+                                      className={`text-[9px] font-black uppercase tracking-widest px-2 py-1 border transition-all cursor-pointer shrink-0 ${
+                                        primaryColor === color
+                                          ? "bg-accent text-primary border-accent"
+                                          : "border-white/20 text-white/30 hover:border-accent/50 hover:text-white/60"
+                                      }`}
+                                    >
+                                      {primaryColor === color ? "✓ Cover" : "Cover"}
+                                    </button>
+                                  )}
+                                  <ImageUpload
+                                    onSuccess={(url) => {
+                                      setColorImages((prev) => ({
+                                        ...prev,
+                                        [color]: [...(prev[color] ?? []), url],
+                                      }));
+                                      if (!primaryColor) setPrimaryColor(color);
+                                    }}
+                                    label="+ Image"
+                                    buttonClassName="text-[9px] font-black uppercase tracking-widest text-accent border border-accent/30 px-2 py-1 hover:bg-accent/10 transition-all cursor-pointer shrink-0"
+                                  />
                                   <button
                                     type="button"
-                                    onClick={() =>
+                                    onClick={() => {
+                                      setColors(colors.filter((c) => c !== color));
                                       setColorImages((prev) => {
                                         const n = { ...prev };
                                         delete n[color];
-                                        if (primaryColor === color) setPrimaryColor("");
                                         return n;
-                                      })
-                                    }
-                                    className="absolute -top-1.5 -right-1.5 w-4 h-4 bg-red-500 text-white flex items-center justify-center rounded-full cursor-pointer hover:bg-red-600 transition-colors"
+                                      });
+                                      if (primaryColor === color) setPrimaryColor("");
+                                    }}
+                                    className="text-white/30 hover:text-red-400 cursor-pointer shrink-0"
                                   >
-                                    <X size={9} />
+                                    <X size={12} />
                                   </button>
                                 </div>
-                              )}
-                              {colorImages[color] && (
-                                <button
-                                  type="button"
-                                  onClick={() => setPrimaryColor(color)}
-                                  className={`text-[9px] font-black uppercase tracking-widest px-2 py-1 border transition-all cursor-pointer shrink-0 ${
-                                    primaryColor === color
-                                      ? "bg-accent text-primary border-accent"
-                                      : "border-white/20 text-white/30 hover:border-accent/50 hover:text-white/60"
-                                  }`}
-                                >
-                                  {primaryColor === color ? "✓ Cover" : "Cover"}
-                                </button>
-                              )}
-                              <ImageUpload
-                                onSuccess={(url) => {
-                                  setColorImages((prev) => ({ ...prev, [color]: url }));
-                                  if (!primaryColor) setPrimaryColor(color);
-                                }}
-                                label={colorImages[color] ? "Change" : "Image"}
-                                buttonClassName="text-[9px] font-black uppercase tracking-widest text-accent border border-accent/30 px-2 py-1 hover:bg-accent/10 transition-all cursor-pointer shrink-0"
-                              />
-                              <button
-                                type="button"
-                                onClick={() => {
-                                  setColors(colors.filter((c) => c !== color));
-                                  setColorImages((prev) => {
-                                    const n = { ...prev };
-                                    delete n[color];
-                                    return n;
-                                  });
-                                }}
-                                className="text-white/30 hover:text-red-400 cursor-pointer shrink-0"
-                              >
-                                <X size={12} />
-                              </button>
-                            </div>
-                          ))}
+                                {imgs.length > 0 && (
+                                  <div className="flex gap-2 flex-wrap">
+                                    {imgs.map((url, idx) => (
+                                      <div key={idx} className="relative shrink-0">
+                                        <div className="w-10 h-10 overflow-hidden border border-white/10">
+                                          {/* eslint-disable-next-line @next/next/no-img-element */}
+                                          <img
+                                            src={url}
+                                            alt={`${color} ${idx + 1}`}
+                                            className="w-full h-full object-cover"
+                                          />
+                                        </div>
+                                        <button
+                                          type="button"
+                                          onClick={() =>
+                                            setColorImages((prev) => {
+                                              const updated = (prev[color] ?? []).filter((_, i) => i !== idx);
+                                              if (updated.length === 0 && primaryColor === color) setPrimaryColor("");
+                                              return { ...prev, [color]: updated };
+                                            })
+                                          }
+                                          className="absolute -top-1.5 -right-1.5 w-4 h-4 bg-red-500 text-white flex items-center justify-center rounded-full cursor-pointer hover:bg-red-600 transition-colors"
+                                        >
+                                          <X size={9} />
+                                        </button>
+                                      </div>
+                                    ))}
+                                  </div>
+                                )}
+                              </div>
+                            );
+                          })}
                         </div>
                       )}
                     </div>

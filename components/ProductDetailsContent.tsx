@@ -12,7 +12,7 @@ export default function ProductDetailsContent({ product }: { product: Product })
   const t = useTranslations("product");
   const tn = useTranslations("nav");
 
-  const allImages = [product.image, ...(product.colorImages || []).map((ci) => ci.image).filter(Boolean)].filter(
+  const allImages = [product.image, ...(product.colorImages || []).flatMap((ci) => ci.images ?? [])].filter(
     (img, i, arr) => Boolean(img) && arr.indexOf(img) === i
   );
 

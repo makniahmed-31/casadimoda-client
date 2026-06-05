@@ -237,7 +237,7 @@ export default function ProductPurchase({ product, displayPrice, hasDiscount, on
                       setVariations((vs) => vs.map((r, j) => (j === i ? { ...r, color } : r)));
                       setSelectionError("");
                       const colorImg = product.colorImages?.find((ci) => ci.color === color);
-                      onColorSelect(colorImg?.image || product.image);
+                      onColorSelect(colorImg?.images?.[0] || product.image);
                     }}
                     className="flex-1 border border-gray-200 p-2 text-xs text-primary bg-white outline-none focus:border-accent"
                   >
@@ -336,7 +336,7 @@ export default function ProductPurchase({ product, displayPrice, hasDiscount, on
                       onClick={() => {
                         setSelectedColor(color);
                         setSelectionError("");
-                        onColorSelect(colorImg?.image || product.image);
+                        onColorSelect(colorImg?.images?.[0] || product.image);
                       }}
                       className={`w-7 h-7 rounded-full border-2 transition-all cursor-pointer ${selectedColor === color ? "border-accent scale-110 shadow-md" : isLight ? "border-gray-300 hover:border-accent" : "border-transparent hover:border-accent"}`}
                       style={{ backgroundColor: hex }}
